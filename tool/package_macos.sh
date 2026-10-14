@@ -71,7 +71,7 @@ else
 fi
 codesign --verify --deep --strict "$app"
 
-echo "Creating $dmg…"
+echo "Creating ${dmg}…"
 rm -f "$dmg"
 staging="$(mktemp -d)"
 trap 'rm -rf "$staging"' EXIT
