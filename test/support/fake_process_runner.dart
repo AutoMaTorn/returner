@@ -13,7 +13,8 @@ class FakeCall {
   final String? stdin;
 
   /// Executable name without directory and `.exe`.
-  String get tool => p.basenameWithoutExtension(executable);
+  // Windows rules also split POSIX paths, so tests behave the same on any host.
+  String get tool => p.windows.basenameWithoutExtension(executable);
 }
 
 class FakeResponse {
