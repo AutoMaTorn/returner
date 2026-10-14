@@ -7,7 +7,7 @@
 #   tool/package_macos.sh                 # unsigned, for yourself
 #   SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" tool/package_macos.sh
 #
-# Not verified: this script was written on Windows and has not been run yet.
+# Not verified on a Mac since the helper tools moved to Contents/MacOS.
 set -euo pipefail
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -49,26 +49,34 @@ done
 echo "Building the app…"
 flutter build macos --release
 
-resources="$app/Contents/Resources/bin"
-mkdir -p "$resources"
-cp "$universal/ipatool" "$universal/ios" "$resources/"
-chmod +x "$resources/ipatool" "$resources/ios"
+# Helper tools go next to the app executable: code in Contents/Resources is
+# not treated as part of the bundle by code signing and Gatekeeper, so a
+# downloaded build had each tool blocked on its own.
+helpers="$app/Contents/MacOS"
+cp "$universal/ipatool" "$universal/ios" "$helpers/"
+chmod +x "$helpers/ipatool" "$helpers/ios"
 
 entitlements="macos/Runner/Release.entitlements"
 if [[ -n "${SIGN_IDENTITY:-}" ]]; then
   echo "Signing with: $SIGN_IDENTITY"
-  # Nested executables first, then the bundle; hardened runtime is required
-  # for notarization.
-  for tool in ipatool ios; do
-    codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$resources/$tool"
-  done
-  codesign --force --deep --timestamp --options runtime \
-    --entitlements "$entitlements" --sign "$SIGN_IDENTITY" "$app"
+  # Hardened runtime and a timestamp are required for notarization.
+  sign=(codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY")
 else
-  echo "SIGN_IDENTITY is not set: ad-hoc signature (the app will run on this Mac;"
-  echo "on other Macs Gatekeeper will ask to allow it in System Settings)."
-  codesign --force --deep --sign - "$app"
+  echo "SIGN_IDENTITY is not set: ad-hoc signature. A downloaded copy needs"
+  echo "\"Open Anyway\" once, or: xattr -dr com.apple.quarantine /Applications/Returner.app"
+  sign=(codesign --force --sign -)
 fi
+# Inside out, without --deep: frameworks, then the helper tools, then the
+# bundle itself with the app's entitlements (the tools get none).
+shopt -s nullglob
+for nested in "$app"/Contents/Frameworks/*.framework "$app"/Contents/Frameworks/*.dylib; do
+  "${sign[@]}" "$nested"
+done
+shopt -u nullglob
+for tool in ipatool ios; do
+  "${sign[@]}" --identifier "ru.returner.$tool" "$helpers/$tool"
+done
+"${sign[@]}" --entitlements "$entitlements" "$app"
 codesign --verify --deep --strict "$app"
 
 echo "Creating ${dmg}…"

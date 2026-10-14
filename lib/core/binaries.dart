@@ -56,8 +56,9 @@ class Binaries {
   Iterable<String> _candidateDirectories() sync* {
     final executableDir = p.dirname(executablePath);
     if (_isMacOS) {
-      // <App>.app/Contents/MacOS/<exe> → <App>.app/Contents/Resources/bin
-      yield p.normalize(p.join(executableDir, '..', 'Resources', 'bin'));
+      // Helper tools sit next to the app executable in Contents/MacOS, where
+      // code signing and Gatekeeper treat them as part of the bundle.
+      yield executableDir;
     }
     yield p.join(executableDir, 'bin');
 

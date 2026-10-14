@@ -28,17 +28,18 @@ void main() {
     expect(b.ios, p.join(dir, 'bin', 'ios.exe'));
   });
 
-  test('release build on macOS uses Contents/Resources/bin', () {
-    final contents = p.normalize(
-      p.join('/Applications', 'Returner.app', 'Contents'),
+  test('release build on macOS uses Contents/MacOS', () {
+    final macos = p.normalize(
+      p.join('/Applications', 'Returner.app', 'Contents', 'MacOS'),
     );
     final b = binaries(
-      executable: p.join(contents, 'MacOS', 'returner'),
+      executable: p.join(macos, 'returner'),
       cwd: '/',
       platform: 'macos-arm64',
-      files: {p.join(contents, 'Resources', 'bin', 'ipatool')},
+      files: {p.join(macos, 'ipatool'), p.join(macos, 'ios')},
     );
-    expect(b.ipatool, p.join(contents, 'Resources', 'bin', 'ipatool'));
+    expect(b.ipatool, p.join(macos, 'ipatool'));
+    expect(b.ios, p.join(macos, 'ios'));
   });
 
   test('development build finds tools/bin above the build output', () {

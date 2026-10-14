@@ -170,7 +170,7 @@ final bundledIconsProvider = FutureProvider<Set<String>>((ref) async {
 
 const bundledIconPrefix = 'assets/catalog_icons/';
 
-const appVersion = '0.1.0';
+const appVersion = '0.1.1';
 const ipatoolVersion = '2.7.0-returner.1';
 const goIosVersion = '1.3.2';
 

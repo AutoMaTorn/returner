@@ -99,9 +99,13 @@ class IpatoolService {
 
     // Trust the saved session, not just the exit code.
     final saved = await currentAccount();
-    if (saved == null) throw const StorageLocked();
+    if (saved == null) {
+      Log.warning('Signed in, but ipatool returned no saved account.');
+      throw const StorageLocked();
+    }
     if (email.contains('@') &&
         saved.email.toLowerCase() != email.trim().toLowerCase()) {
+      Log.warning('Signed in, but ipatool saved a different account.');
       throw const StorageLocked();
     }
     return saved;

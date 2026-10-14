@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../core/errors.dart';
+import '../core/log.dart';
 
 /// Minimal key-value view of the OS credential store.
 abstract class SecretsBackend {
@@ -15,7 +16,13 @@ abstract class SecretsBackend {
 class PlatformSecretsBackend implements SecretsBackend {
   const PlatformSecretsBackend();
 
-  static const _storage = FlutterSecureStorage();
+  // The data protection keychain (the plugin's default on macOS) needs the
+  // keychain-access-groups entitlement, which an ad-hoc or Developer ID
+  // build without a provisioning profile cannot carry: every write fails
+  // with errSecMissingEntitlement. The login keychain needs no entitlement.
+  static const _storage = FlutterSecureStorage(
+    mOptions: MacOsOptions(usesDataProtectionKeychain: false),
+  );
 
   @override
   Future<String?> read(String key) => _storage.read(key: key);
@@ -54,13 +61,17 @@ class SecureStore {
         // Read back: a store that silently drops writes would lock the user
         // out of the session on the next launch.
         if (await _backend.read(_passphraseKey) != value) {
+          Log.warning('Credential store dropped the session passphrase.');
           throw const StorageLocked();
         }
       }
       return _cached = value;
     } on AppError {
       rethrow;
-    } catch (_) {
+    } catch (error) {
+      // Platform errors carry no secrets (the keychain's own status text);
+      // Log masks the line anyway.
+      Log.warning('Credential store is unavailable: $error');
       throw const StorageLocked();
     }
   }
