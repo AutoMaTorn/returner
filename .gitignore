@@ -1,0 +1,23 @@
+# Bundled CLIs and their build tree
+tools/bin/
+tools/build/
+
+# Flutter / Dart
+build/
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+coverage/
+*.iml
+.idea/
+.vscode/
+**/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Pods/
+macos/.symlinks/
+**/xcuserdata/
+.DS_Store
+
+# App Store packages
+*.ipa

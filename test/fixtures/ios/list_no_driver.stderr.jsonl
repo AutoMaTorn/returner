@@ -1,0 +1,2 @@
+{"time":"2026-10-14T00:35:43.0046324+03:00","level":"WARN","msg":"go-ios agent is not running. You might need to start it with 'ios tunnel start' for ios17+. Use ENABLE_GO_IOS_AGENT=user for userspace tunnel or ENABLE_GO_IOS_AGENT=kernel for kernel tunnel for the experimental daemon mode."}
+{"time":"2026-10-14T00:35:43.017772+03:00","level":"ERROR","msg":"failed getting device list","err":"dial tcp 127.0.0.1:27015: connectex: No connection could be made because the target machine actively refused it."}

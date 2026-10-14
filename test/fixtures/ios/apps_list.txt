@@ -1,0 +1,3 @@
+ph.telegra.Telegraph Telegram 13.0
+com.google.ios.youtube YouTube 21.41.5
+com.burgerking.bk Burger King 11.11.0

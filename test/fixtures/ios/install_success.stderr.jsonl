@@ -1,0 +1,14 @@
+{"time":"2026-10-14T00:55:52.2046324+03:00","level":"WARN","msg":"go-ios agent is not running. You might need to start it with 'ios tunnel start' for ios17+. Use ENABLE_GO_IOS_AGENT=user for userspace tunnel or ENABLE_GO_IOS_AGENT=kernel for kernel tunnel for the experimental daemon mode."}
+{"time":"2026-10-14T00:55:52.444392+03:00","level":"INFO","msg":"installing","appPath":"cache/com.cdek.cdekapp.ipa","device":"00008140-000A1B2C3D4E001C"}
+{"time":"2026-10-14T00:55:59.0069223+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"CreatingStagingDirectory","percentComplete":5}
+{"time":"2026-10-14T00:55:59.0069223+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"ExtractingPackage","percentComplete":15}
+{"time":"2026-10-14T00:55:59.0069223+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"InspectingPackage","percentComplete":20}
+{"time":"2026-10-14T00:55:59.0558523+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"PreflightingApplication","percentComplete":30}
+{"time":"2026-10-14T00:55:59.0955135+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"VerifyingApplication","percentComplete":40}
+{"time":"2026-10-14T00:55:59.5499872+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"CreatingContainer","percentComplete":50}
+{"time":"2026-10-14T00:55:59.5543668+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"InstallingApplication","percentComplete":60}
+{"time":"2026-10-14T00:55:59.6292916+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"PostflightingApplication","percentComplete":70}
+{"time":"2026-10-14T00:55:59.7498457+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"SandboxingApplication","percentComplete":80}
+{"time":"2026-10-14T00:55:59.783906+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"GeneratingApplicationMap","percentComplete":90}
+{"time":"2026-10-14T00:55:59.8358077+03:00","level":"INFO","msg":"installing","module":"go-ios/zipconduit","status":"InstallComplete","percentComplete":100}
+{"time":"2026-10-14T00:55:59.9115049+03:00","level":"INFO","msg":"installation successful","module":"go-ios/zipconduit"}

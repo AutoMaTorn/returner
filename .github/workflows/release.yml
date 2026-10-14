@@ -1,0 +1,92 @@
+# Builds Windows and macOS packages when a version tag is pushed and attaches
+# them to a GitHub release.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+      - run: flutter pub get
+      - name: Build ipatool with the patch, fetch go-ios
+        run: dart run tool/fetch_binaries.dart
+      - run: flutter analyze
+      - run: flutter test
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Package
+        run: dart run tool/package_windows.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: returner-windows-x64
+          path: |
+            build/dist/*.exe
+            build/dist/*.zip
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Package (ad-hoc signature unless SIGN_IDENTITY is configured)
+        run: tool/package_macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: returner-macos
+          path: build/dist/*.dmg
+          if-no-files-found: error
+
+  publish:
+    # A release is published with whatever was built: a failing macOS build
+    # must not hold back the Windows installer, and the other way round.
+    needs: [windows, macos]
+    if: >-
+      always() && startsWith(github.ref, 'refs/tags/v') &&
+      (needs.windows.result == 'success' || needs.macos.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      # A draft: these builds carry no catalog icons (the icons are not in
+      # this repository). The files built with them are uploaded over these
+      # before the release is published by hand.
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -la dist
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --title "Returner ${TAG#v}" \
+            --notes "Сборки не подписаны: Windows покажет «Неизвестный издатель», macOS попросит разрешить запуск в системных настройках."

@@ -1,0 +1,1372 @@
+[
+  {
+    "title": "MAX — общение, звонки, сервисы",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6739530834",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "ВКонтакте",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "564177498",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "ВК Видео",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6447614666",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Авито",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "417281773",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Яндекс Пэй",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1634422317",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "TikTok",
+    "category": "Развлечения",
+    "releases": [
+      {
+        "appStoreId": "835599320",
+        "bundleId": "com.zhiliaoapp.musically"
+      }
+    ]
+  },
+  {
+    "title": "WhatsApp",
+    "category": "Общение",
+    "releases": [
+      {
+        "appStoreId": "310633997",
+        "bundleId": "net.whatsapp.WhatsApp"
+      }
+    ]
+  },
+  {
+    "title": "Почта Mail.ru",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "511310430",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Т-Банк (Tinkoff)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "455652438",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Альфа-Банк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6755534634",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Альфа Инвестиции",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1187815798",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Альфа-Бизнес",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6462882954",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "СберБизнес",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1641287030",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сбербанк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6749261529",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сбермаркет",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6636482626",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Т-Инвестиции",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6763549416",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Chat GPT",
+    "category": "Работа",
+    "releases": [
+      {
+        "appStoreId": "6448311069",
+        "bundleId": "com.openai.chat"
+      }
+    ]
+  },
+  {
+    "title": "РЖД (Пассажирам ЖД)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1195015982",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Амина",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6749384265",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Автодор",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1497865709",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Рутуб",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "966511294",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Газпромнефть",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "502808508",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сириус ВТБ",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6749962031",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Happ",
+    "category": "Утилиты",
+    "releases": [
+      {
+        "appStoreId": "6504287215",
+        "bundleId": "su.ffg.happ"
+      }
+    ]
+  },
+  {
+    "title": "Совкомбанк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6803087901",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Яндекс Музыка",
+    "category": "Музыка",
+    "releases": [
+      {
+        "appStoreId": "520797969",
+        "bundleId": "ru.yandex.mobile.music"
+      }
+    ]
+  },
+  {
+    "title": "Юла",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1016489154",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Haraba",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1477603193",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Россельхоз Банк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6446368818",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Movix",
+    "category": "Развлечения",
+    "releases": [
+      {
+        "appStoreId": "6753332416",
+        "bundleId": "tv.fimstv.com",
+        "storeName": "Кино.Дом"
+      }
+    ]
+  },
+  {
+    "title": "Лента",
+    "category": "Еда",
+    "releases": [
+      {
+        "appStoreId": "1087812169",
+        "bundleId": "ru.surf.okey",
+        "storeName": "О'КЕЙ Гипермаркеты и доставка"
+      }
+    ]
+  },
+  {
+    "title": "Авиакомпания АЛРОСА",
+    "category": "Путешествия",
+    "releases": [
+      {
+        "appStoreId": "6796619816",
+        "bundleId": "com.alrosa",
+        "storeName": "Алмазная Миля"
+      }
+    ]
+  },
+  {
+    "title": "Альфа Капитал (Школа инвестора)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6767516632",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Дом.ру бизнес",
+    "category": "Бизнес",
+    "releases": [
+      {
+        "appStoreId": "6759156206",
+        "bundleId": "com.business.corpcabinet",
+        "storeName": "Корпоративный кабинет Бизнеса"
+      }
+    ]
+  },
+  {
+    "title": "Новикомбанк (LunarCode)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6764754827",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Лента",
+    "category": "Еда",
+    "releases": [
+      {
+        "appStoreId": "6789156920",
+        "bundleId": "com.timofeykozuylichev.legko",
+        "storeName": "Лёгко"
+      }
+    ]
+  },
+  {
+    "title": "Своё | Родное (Ярмарка Дома)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6781311617",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Рамблер & Сбер Диск (Календарь: Умный помощник)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6746786886",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "СургутНефтеГазБанк (Черника Онлайн)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6776650255",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Premier",
+    "category": "Игры",
+    "releases": [
+      {
+        "appStoreId": "6773297506",
+        "bundleId": "com.pianowave.musicgame",
+        "storeName": "PianoWave"
+      }
+    ]
+  },
+  {
+    "title": "Rutube",
+    "category": "Игры",
+    "releases": [
+      {
+        "appStoreId": "6766530710",
+        "bundleId": "com.slicingdice.game",
+        "storeName": "SlicingDices"
+      }
+    ]
+  },
+  {
+    "title": "Бак+Бонус",
+    "category": "Образ жизни",
+    "releases": [
+      {
+        "appStoreId": "6756371742",
+        "bundleId": "ru.bakbonus.appstarter"
+      }
+    ]
+  },
+  {
+    "title": "Газпром Инвестиции",
+    "category": "Развлечения",
+    "releases": [
+      {
+        "appStoreId": "6759976509",
+        "bundleId": "ru.billfo.mobile",
+        "storeName": "BillFO"
+      }
+    ]
+  },
+  {
+    "title": "РСХБ Бизнес (Тракторный Клуб)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6761844867",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Rutube (Starship Battle: Commander)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6760892177",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Дом.РУ (ПроСкорость)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6754636283",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "УБРиР (РУбли)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6754563452",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Альфа Страхование (HealthFlow)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6756132649",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "СОГАЗ",
+    "category": "Финансы",
+    "releases": [
+      {
+        "appStoreId": "6448322800",
+        "bundleId": "kz.origon.empapp",
+        "storeName": "Здоровье и страхование"
+      }
+    ]
+  },
+  {
+    "title": "VK мессенджер",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1441659687",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Облако Mail",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "696551382",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Газпромбанк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6755891115",
+        "bundleId": null,
+        "storeName": "Цифровой сейф"
+      }
+    ]
+  },
+  {
+    "title": "БКС Инвестиции",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1033882791",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Одноклассники",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "398465290",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "VK Музыка",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1054372220",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Промсвязьбанк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6754700095",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Окко",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "448868000",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "МКБ",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1641088465",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Лукойл",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "959900548",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Yota",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "871741640",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Метро",
+    "category": "Навигация",
+    "releases": [
+      {
+        "appStoreId": "1093391186",
+        "bundleId": "ru.mosmetro"
+      }
+    ]
+  },
+  {
+    "title": "Русский Стандарт",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6759281643",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Ренессанс банк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1083085558",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "S7",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "552920434",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Аптека Апрель",
+    "category": "Медицина",
+    "releases": [
+      {
+        "appStoreId": "1446878085",
+        "bundleId": "ru.apteka.app"
+      }
+    ]
+  },
+  {
+    "title": "АЗС ГПН",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1505540651",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "VK admin",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6121396",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сберзвук",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6443779583",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Маруся",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1467719381",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Дзен",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1343242452",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Татнефть",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1514207975",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Учи.ру",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1142128526",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "WhatsApp Business",
+    "category": "Бизнес",
+    "releases": [
+      {
+        "appStoreId": "1386412985",
+        "bundleId": "net.whatsapp.WhatsAppSMB"
+      }
+    ]
+  },
+  {
+    "title": "Врач38",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1149268260",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Моя школа",
+    "category": "Образование",
+    "releases": [
+      {
+        "appStoreId": "6444533335",
+        "bundleId": "ru.mes.dnevnik.fgis"
+      }
+    ]
+  },
+  {
+    "title": "Сберkids",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6760183578",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "АльфаСтрахование Мобайл",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1039418352",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Калькулятор+",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "470578793",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Дом Гид",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6756063248",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Суперника",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1660808961",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "2Books",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1547175685",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Yplaces",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6448745076",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Kuper",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6505025679",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "PROЗерно",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6760112867",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "TripTally",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6449542227",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Лукойл Бизнес",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1575375696",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Банк Саратов",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1518795559",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Дом Йоги(МТС)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6745097862",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "ВТБ Бизнес",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6760258038",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Цифра Банк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6759003891",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сибирь (S7)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6755426632",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Ваш ЗСД 2.0",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1161858450",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "CraftT(ТБанк)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6756064549",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Т-карта",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1176497510",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "UralAirlines",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "866977959",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "2ГИС",
+    "category": "Навигация",
+    "releases": [
+      {
+        "appStoreId": "481627348",
+        "bundleId": "ru.doublegis.grymmobile"
+      }
+    ]
+  },
+  {
+    "title": "Аэрофлот",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "580243869",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Au",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1467701468",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "WB курьер",
+    "category": "Бизнес",
+    "releases": [
+      {
+        "appStoreId": "6444680258",
+        "bundleId": "com.wb.courierClient"
+      }
+    ]
+  },
+  {
+    "title": "VK HR Tek",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1619752843",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Wink",
+    "category": "Развлечения",
+    "releases": [
+      {
+        "appStoreId": "1294366633",
+        "bundleId": "ru.rt.itv"
+      }
+    ]
+  },
+  {
+    "title": "Teboil PRO",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6702018451",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Р-Н Карт",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1438092935",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Столото",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "579961527",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Dion",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1613727907",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Rave",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "929775122",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Р-Н Карт для бизнеса",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1438092934",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Цифровой ключ",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6444128766",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Мессенджер Команда",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1616562120",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Зимний комфорт",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1211887465",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Kluch",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6746730236",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Свой бюджет",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6443545473",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Умный бюджет",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "675039911",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Локо Мобайл",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "895017259",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Breathe With me: breathwork",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1610009500",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Mini chat",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1506912979",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "EvoClub guest",
+    "category": "Развлечения",
+    "releases": [
+      {
+        "appStoreId": "873991930",
+        "bundleId": "com.evoclub.guest.store"
+      }
+    ]
+  },
+  {
+    "title": "МЕГИ ФАРМЛЕНД",
+    "category": "Медицина",
+    "releases": [
+      {
+        "appStoreId": "1452753078",
+        "bundleId": "clinic.megi.mgfl"
+      }
+    ]
+  },
+  {
+    "title": "Райффазен Банк",
+    "category": "Финансы",
+    "releases": [
+      {
+        "appStoreId": "557857165",
+        "bundleId": "ru.raiffeisenbank.rconnect"
+      }
+    ]
+  },
+  {
+    "title": "Home Ключи",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6754283810",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Loveit",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1349402658",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Юмани",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1535767566",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Совкомбанк",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6502664656",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Бизнес слова",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6449148888",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Т-Бизнес",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1031837973",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Банк Зенит",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6499341355",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сотрудник группы «Татнефть»",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1586976311",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "ДЕД Proxy: Турбо ВПН",
+    "category": "Утилиты",
+    "releases": [
+      {
+        "appStoreId": "6753730543",
+        "bundleId": "com.CyberHaven"
+      }
+    ]
+  },
+  {
+    "title": "VK клипы",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1615733452",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Заправить авто",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1212049348",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Yclients",
+    "category": "Бизнес",
+    "releases": [
+      {
+        "appStoreId": "1084371596",
+        "bundleId": "com.yclients.admin"
+      }
+    ]
+  },
+  {
+    "title": "Сургутнефтегаз",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "1573923615",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Агроскан",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6756363114",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Россельхоз банк(любовь и гуси)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6817277802",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Сбербанк Бизнес (Firma)",
+    "category": "",
+    "releases": [
+      {
+        "appStoreId": "6755140000",
+        "bundleId": null
+      }
+    ]
+  },
+  {
+    "title": "Minecraft: Play with friends",
+    "category": "Игры",
+    "releases": [
+      {
+        "appStoreId": "479516143",
+        "bundleId": "com.mojang.minecraftpe"
+      }
+    ]
+  }
+]
