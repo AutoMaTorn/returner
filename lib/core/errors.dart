@@ -42,6 +42,13 @@ class AppleUnreachable extends AppError {
   const AppleUnreachable() : super('APPLE_UNREACHABLE');
 }
 
+/// Apple answers the sign-in request with nothing usable (empty 204, 404),
+/// whatever the password. Seen on 2026-11-07 for every account: Apple changed
+/// what it accepts, and only an ipatool update can fix it.
+class AppleLoginRejected extends AppError {
+  const AppleLoginRejected() : super('APPLE_LOGIN_REJECTED');
+}
+
 /// The account has not accepted the App Store terms or has no storefront.
 class AccountNotReady extends AppError {
   const AccountNotReady() : super('ACCOUNT_NOT_READY');

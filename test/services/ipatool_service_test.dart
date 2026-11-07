@@ -176,6 +176,17 @@ void main() {
       );
     });
 
+    test('an empty answer from Apple is AppleLoginRejected', () async {
+      runner.on('ipatool', [
+        'auth',
+        'login',
+      ], failed('login_rejected_by_apple.json'));
+      await expectLater(
+        service.login('user@example.com', 'pw'),
+        throwsA(isA<AppleLoginRejected>()),
+      );
+    });
+
     test('does not trust a login that left no readable session', () async {
       runner
         ..on('ipatool', ['auth', 'login'], loginOk)

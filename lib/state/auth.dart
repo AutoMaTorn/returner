@@ -105,6 +105,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(AuthStatus.storageLocked, error: error);
     } on AppError catch (error) {
       _pending = null;
+      Log.warning('Sign-in failed: ${error.code}');
       state = AuthState(AuthStatus.signedOut, error: error);
     } finally {
       if (identical(_cancel, cancel)) _cancel = null;

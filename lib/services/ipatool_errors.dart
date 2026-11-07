@@ -55,6 +55,13 @@ AppError mapIpatoolError(String output, {bool duringLogin = false}) {
       ])) {
     return const AuthInvalidCredentials();
   }
+  // Observed 2026-11-07: Apple returns empty answers to every sign-in.
+  if (_any(value, [
+    'no usable authentication response',
+    'empty or non-plist authentication response',
+  ])) {
+    return const AppleLoginRejected();
+  }
   if ((value.contains('too many') && value.contains('attempt')) ||
       value.contains('account locked')) {
     return const AuthRateLimited();

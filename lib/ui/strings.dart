@@ -266,6 +266,7 @@ abstract final class S {
     AuthSessionExpired() => 'Сессия истекла. Войдите в Apple ID заново.',
     StorageLocked() => 'Не удалось открыть сохранённую сессию Apple ID. Войдите заново — прежние данные сохранены в резервной папке.',
     AppleUnreachable() => 'Нет связи с серверами Apple. Проверьте интернет; если включён VPN — выключите его, если выключен — включите.',
+    AppleLoginRejected() => 'Apple сейчас не принимает вход: серверы отвечают пустым ответом, и дело не в пароле. Так бывает, когда Apple меняет порядок входа, — нужна новая версия Returner. Попробуйте позже или с другой сети.',
     AccountNotReady() => 'Этот Apple ID ещё не готов к загрузкам. Войдите под ним в App Store на iPhone и примите условия.',
     LicenseRequired() => noLicenseBody,
     LicenseRefused(:final appleMessage) => _withReason(
