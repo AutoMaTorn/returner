@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
 import '../services/driver_service.dart';
@@ -96,9 +97,15 @@ class LookupCountryController extends Notifier<String> {
   }
 }
 
-final driverServiceProvider = Provider<DriverService>(
-  (ref) => DriverService(runner: ref.watch(processRunnerProvider)),
-);
+final driverServiceProvider = Provider<DriverService>((ref) {
+  final client = http.Client();
+  ref.onDispose(client.close);
+  return DriverService(
+    runner: ref.watch(processRunnerProvider),
+    client: client,
+    workDirectory: ref.watch(appPathsProvider).driverStaging,
+  );
+});
 
 /// Whether the device list currently fails because Apple's driver is absent.
 final driverMissingProvider = Provider<bool>((ref) {
@@ -109,12 +116,15 @@ final driverMissingProvider = Provider<bool>((ref) {
 enum DriverInstallStatus { idle, installing, failed }
 
 class DriverInstallState {
-  const DriverInstallState(this.status, [this.message]);
+  const DriverInstallState(this.status, {this.progress, this.failure});
 
   final DriverInstallStatus status;
 
-  /// Latest line from the installer.
-  final String? message;
+  /// Current step while installing.
+  final DriverInstallProgress? progress;
+
+  /// Why the last attempt failed.
+  final DriverInstallResult? failure;
 }
 
 final driverInstallProvider =
@@ -134,14 +144,14 @@ class DriverInstallController extends Notifier<DriverInstallState> {
     final result = await ref
         .read(driverServiceProvider)
         .install(
-          onOutput: (line) =>
-              state = DriverInstallState(DriverInstallStatus.installing, line),
+          onProgress: (progress) => state = DriverInstallState(
+            DriverInstallStatus.installing,
+            progress: progress,
+          ),
         );
-    state = DriverInstallState(
-      result == DriverInstallResult.installed
-          ? DriverInstallStatus.idle
-          : DriverInstallStatus.failed,
-    );
+    state = result == DriverInstallResult.installed
+        ? const DriverInstallState(DriverInstallStatus.idle)
+        : DriverInstallState(DriverInstallStatus.failed, failure: result);
     // The device poll picks the new driver up on its next round.
     ref.invalidate(devicesProvider);
   }
@@ -170,7 +180,7 @@ final bundledIconsProvider = FutureProvider<Set<String>>((ref) async {
 
 const bundledIconPrefix = 'assets/catalog_icons/';
 
-const appVersion = '0.1.1';
+const appVersion = '0.2.0';
 const ipatoolVersion = '2.7.0-returner.1';
 const goIosVersion = '1.3.2';
 

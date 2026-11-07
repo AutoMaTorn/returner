@@ -27,6 +27,9 @@ class AppPaths {
 
   String get logs => p.join(root, 'logs');
 
+  /// Apple's installer while the driver is being installed.
+  String get driverStaging => p.join(staging, 'driver');
+
   /// Partial files of one operation.
   String stagingFor(String operationId) => p.join(staging, operationId);
 

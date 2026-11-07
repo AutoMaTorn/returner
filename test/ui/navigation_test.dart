@@ -227,15 +227,16 @@ class _FakeVersions implements VersionsRepository {
 }
 
 class _FakeDriverInstall extends DriverInstallController {
-  _FakeDriverInstall(this._result);
+  _FakeDriverInstall(this._result, [this._failure]);
 
   final DriverInstallStatus _result;
+  final DriverInstallResult? _failure;
   var calls = 0;
 
   @override
   Future<void> install() async {
     calls++;
-    state = DriverInstallState(_result);
+    state = DriverInstallState(_result, failure: _failure);
   }
 }
 
@@ -279,6 +280,7 @@ void main() {
     List<Package>? packages,
     bool driverMissing = false,
     DriverInstallStatus driverResult = DriverInstallStatus.idle,
+    DriverInstallResult? driverFailure,
     bool binariesPresent = true,
   }) async {
     tester.view.physicalSize = size;
@@ -293,7 +295,7 @@ void main() {
     operations = _FakeOperations();
     library = _FakeLibrary(packages ?? [_package]);
     search = _FakeSearch();
-    driver = _FakeDriverInstall(driverResult);
+    driver = _FakeDriverInstall(driverResult, driverFailure);
     versions = _FakeVersions();
     opened = [];
     clipboard = [];
@@ -395,6 +397,7 @@ void main() {
     List<Package>? packages,
     bool driverMissing = false,
     DriverInstallStatus driverResult = DriverInstallStatus.idle,
+    DriverInstallResult? driverFailure,
   }) async {
     await pumpApp(
       tester,
@@ -404,6 +407,7 @@ void main() {
       packages: packages,
       driverMissing: driverMissing,
       driverResult: driverResult,
+      driverFailure: driverFailure,
     );
     await tap(tester, button(S.setupContinue));
   }
@@ -965,13 +969,48 @@ void main() {
         driverMissing: true,
         driverResult: DriverInstallStatus.failed,
       );
-      expect(button(S.driverOpenStore), findsNothing);
+      expect(button(S.driverItunes), findsNothing);
+      expect(find.textContaining('apple.com'), findsWidgets);
       await tap(tester, button(S.driverInstall));
       expect(find.text(S.driverFailedTitle), findsOneWidget);
 
-      await tap(tester, button(S.driverOpenStore));
       await tap(tester, button(S.driverItunes));
-      expect(opened, [DriverService.storeUri, DriverService.itunesUri]);
+      expect(opened, [DriverService.itunesUri]);
+    });
+
+    for (final (failure, title) in [
+      (DriverInstallResult.downloadFailed, S.driverDownloadTitle),
+      (DriverInstallResult.untrusted, S.driverUntrustedTitle),
+      (DriverInstallResult.unpackFailed, S.driverUnpackTitle),
+    ]) {
+      testWidgets('driver failure ${failure.name} says what to do', (
+        tester,
+      ) async {
+        await openHome(
+          tester,
+          driverMissing: true,
+          driverResult: DriverInstallStatus.failed,
+          driverFailure: failure,
+        );
+        await tap(tester, button(S.driverInstall));
+        expect(find.text(title), findsOneWidget);
+        expect(button(S.driverItunes), findsOneWidget);
+      });
+    }
+
+    testWidgets('a refused permission prompt only offers a retry', (
+      tester,
+    ) async {
+      await openHome(
+        tester,
+        driverMissing: true,
+        driverResult: DriverInstallStatus.failed,
+        driverFailure: DriverInstallResult.cancelled,
+      );
+      await tap(tester, button(S.driverInstall));
+      expect(find.text(S.driverCancelledTitle), findsOneWidget);
+      expect(button(S.retry), findsOneWidget);
+      expect(button(S.driverItunes), findsNothing);
     });
   });
 

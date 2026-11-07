@@ -64,15 +64,41 @@ abstract final class S {
   // Notices at the top of a section
   static const driverTitle = 'нет драйвера apple';
   static const driverBody =
-      'Windows не видит iPhone без драйвера Apple. Его можно поставить отсюда — '
-      'это приложение «Apple Devices» из Microsoft Store.';
+      'Windows не видит iPhone без драйвера Apple. Returner скачает с apple.com '
+      'установщик iTunes (около 200 МБ), возьмёт из него только драйвер и службу '
+      'Apple Mobile Device и установит их — сам iTunes ставиться не будет. '
+      'Windows спросит разрешение — ответьте «Да». Устанавливая драйвер, вы '
+      'принимаете лицензию Apple на это ПО.';
   static const driverInstall = 'Установить драйвер Apple';
-  static const driverInstalling = 'устанавливаем «Apple Devices»';
+  static String driverDownloading(double? fraction) => fraction == null
+      ? 'скачиваем установщик с apple.com'
+      : 'скачиваем установщик с apple.com — ${(fraction * 100).floor()} %';
+  static const driverVerifying = 'проверяем подпись Apple';
+  static const driverUnpacking = 'достаём драйвер из установщика';
+  static const driverRunning = 'устанавливаем — в окне Windows ответьте «Да»';
+  static const driverStarting = 'ждём, пока запустится служба Apple';
+  static const driverCancelledTitle = 'установка отменена';
+  static const driverCancelledBody =
+      'Windows не получила разрешение. Нажмите «Повторить» и в окне Windows '
+      'ответьте «Да». Если Windows просит пароль — нужен пароль администратора '
+      'этого компьютера.';
+  static const driverDownloadTitle = 'не удалось скачать установщик';
+  static const driverDownloadBody =
+      'Проверьте подключение к интернету и попробуйте ещё раз. Установщик '
+      'берётся только с apple.com.';
+  static const driverUntrustedTitle = 'файл не прошёл проверку';
+  static const driverUntrustedBody =
+      'Скачанный установщик не подписан Apple, поэтому Returner его не '
+      'запускает. Попробуйте позже или поставьте iTunes с сайта Apple вручную.';
+  static const driverUnpackTitle = 'не удалось распаковать установщик';
+  static const driverUnpackBody =
+      'Возможно, не хватает места на диске или Apple изменила установщик. '
+      'Освободите место и повторите или поставьте iTunes с сайта Apple вручную.';
   static const driverFailedTitle = 'драйвер не установился';
   static const driverFailedBody =
-      'Автоматически не получилось. Поставьте «Apple Devices» из Microsoft Store '
-      'или iTunes с сайта Apple, затем переподключите iPhone.';
-  static const driverOpenStore = 'Открыть Microsoft Store';
+      'Установщик Apple завершился с ошибкой. Перезагрузите компьютер и '
+      'повторите или поставьте iTunes с сайта Apple вручную, затем '
+      'переподключите iPhone.';
   static const driverItunes = 'iTunes на apple.com';
   static const severalTitle = 'подключено несколько iphone';
   static const severalBody =

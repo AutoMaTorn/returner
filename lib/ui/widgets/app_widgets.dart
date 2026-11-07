@@ -406,6 +406,9 @@ class _DriverNotice extends ConsumerWidget {
     final install = ref.read(driverInstallProvider.notifier).install;
     final open = ref.read(urlOpenerProvider);
     final failed = state.status == DriverInstallStatus.failed;
+    final (title, body) = failed
+        ? _failureText(state.failure)
+        : (S.driverTitle, S.driverBody);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -413,8 +416,8 @@ class _DriverNotice extends ConsumerWidget {
         children: [
           AmNotice(
             tone: failed ? AmTone.danger : AmTone.warning,
-            title: failed ? S.driverFailedTitle : S.driverTitle,
-            body: failed ? S.driverFailedBody : S.driverBody,
+            title: title,
+            body: body,
           ),
           const SizedBox(height: 12),
           if (state.status == DriverInstallStatus.installing)
@@ -424,7 +427,7 @@ class _DriverNotice extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    state.message ?? S.driverInstalling,
+                    _progressText(state.progress),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Automatorn.code.copyWith(color: c.text),
@@ -442,20 +445,48 @@ class _DriverNotice extends ConsumerWidget {
                   onPressed: install,
                   child: Text(failed ? S.retry : S.driverInstall),
                 ),
-                if (failed) ...[
-                  OutlinedButton(
-                    onPressed: () => open(DriverService.storeUri),
-                    child: const Text(S.driverOpenStore),
-                  ),
+                if (failed && state.failure != DriverInstallResult.cancelled)
                   OutlinedButton(
                     onPressed: () => open(DriverService.itunesUri),
                     child: const Text(S.driverItunes),
                   ),
-                ],
               ],
             ),
         ],
       ),
     );
   }
+
+  static String _progressText(DriverInstallProgress? progress) =>
+      switch (progress?.stage) {
+        null => S.driverDownloading(null),
+        DriverInstallStage.download => S.driverDownloading(progress?.fraction),
+        DriverInstallStage.verify => S.driverVerifying,
+        DriverInstallStage.unpack => S.driverUnpacking,
+        DriverInstallStage.install => S.driverRunning,
+        DriverInstallStage.start => S.driverStarting,
+      };
+
+  static (String, String) _failureText(DriverInstallResult? failure) =>
+      switch (failure) {
+        DriverInstallResult.cancelled => (
+          S.driverCancelledTitle,
+          S.driverCancelledBody,
+        ),
+        DriverInstallResult.downloadFailed => (
+          S.driverDownloadTitle,
+          S.driverDownloadBody,
+        ),
+        DriverInstallResult.untrusted => (
+          S.driverUntrustedTitle,
+          S.driverUntrustedBody,
+        ),
+        DriverInstallResult.unpackFailed => (
+          S.driverUnpackTitle,
+          S.driverUnpackBody,
+        ),
+        DriverInstallResult.installFailed ||
+        DriverInstallResult.installed ||
+        null => (S.driverFailedTitle, S.driverFailedBody),
+      };
 }
