@@ -7,6 +7,7 @@ import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:returner/core/app_paths.dart';
+import 'package:returner/core/errors.dart';
 import 'package:returner/core/log_file.dart';
 import 'package:returner/models/app_ref.dart';
 import 'package:returner/models/store.dart';
@@ -117,13 +118,13 @@ void main() {
       final report = ReportBuilder(
         appVersion: '0.1.0',
         platform: 'windows-x64',
-        toolVersions: 'ipatool 2.7.0-returner.1 · go-ios 1.3.2',
+        toolVersions: 'ipatool 2.8.0-returner.1 · go-ios 1.3.2',
         journal: journal,
         log: log,
       ).build();
 
       expect(report, startsWith('Returner 0.1.0 · windows-x64'));
-      expect(report, contains('ipatool 2.7.0-returner.1'));
+      expect(report, contains('ipatool 2.8.0-returner.1'));
       expect(
         report,
         contains(
@@ -299,7 +300,53 @@ void main() {
     test('lists builds newest first', () async {
       when(() => ipatool.listVersions(any()))
           .thenAnswer((_) async => ['100', '200', '300']);
-      expect(await repository().list(app), ['300', '200', '100']);
+      expect((await repository().list(app)).ids, ['300', '200', '100']);
+    });
+
+    test('keeps the build list and asks Apple again only on refresh', () async {
+      when(() => ipatool.listVersions(any()))
+          .thenAnswer((_) async => ['100', '200']);
+      expect(repository().saved(app), isNull);
+
+      final first = await repository().list(
+        app,
+        now: () => DateTime.utc(2026, 11, 8, 12),
+      );
+      expect(first.fetchedAt, DateTime.utc(2026, 11, 8, 12));
+      // Opening again, even after a restart, reads the saved list.
+      final again = await repository().list(app);
+      expect(again.ids, ['200', '100']);
+      expect(again.fetchedAt, DateTime.utc(2026, 11, 8, 12));
+      verify(() => ipatool.listVersions(app)).called(1);
+
+      when(() => ipatool.listVersions(any()))
+          .thenAnswer((_) async => ['100', '200', '300']);
+      final fresh = await repository().list(
+        app,
+        refresh: true,
+        now: () => DateTime.utc(2026, 11, 9),
+      );
+      expect(fresh.ids, ['300', '200', '100']);
+      expect(repository().saved(app)!.ids, ['300', '200', '100']);
+      expect(repository().saved(app)!.fetchedAt, DateTime.utc(2026, 11, 9));
+    });
+
+    test('a failed refresh keeps the saved build list', () async {
+      when(() => ipatool.listVersions(any())).thenAnswer((_) async => ['100']);
+      await repository().list(app);
+      when(() => ipatool.listVersions(any()))
+          .thenThrow(const AppleUnreachable());
+      await expectLater(
+        repository().list(app, refresh: true),
+        throwsA(isA<AppleUnreachable>()),
+      );
+      expect(repository().saved(app)!.ids, ['100']);
+    });
+
+    test('the build list is per account', () async {
+      when(() => ipatool.listVersions(any())).thenAnswer((_) async => ['100']);
+      await repository('acc-a').list(app);
+      expect(repository('acc-b').saved(app), isNull);
     });
 
     test('asks Apple for a build once and remembers the answer', () async {

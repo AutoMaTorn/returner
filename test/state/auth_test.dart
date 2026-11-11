@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:returner/core/cancel.dart';
 import 'package:returner/core/errors.dart';
@@ -102,6 +103,59 @@ void main() {
         ).called(1);
       },
     );
+
+    test('asking for the code again signs in without one', () async {
+      // No code arrives; the second attempt is let through without it.
+      loginAnswers([const AuthNeeds2FA(), const AuthNeeds2FA(), _account]);
+      await auth().login('user@example.com', 'pw');
+      await auth().resendCode();
+      expect(state().status, AuthStatus.waitingForCode);
+      await auth().resendCode();
+      expect(state().status, AuthStatus.authenticated);
+      verify(
+        () => ipatool.login(
+          'user@example.com',
+          'pw',
+          code: null,
+          cancel: any(named: 'cancel'),
+        ),
+      ).called(3);
+    });
+
+    test('an unknown answer to a code is logged with its text', () async {
+      // Seen live: a code from a browser sign-in got an answer we could not
+      // read, and the next sign-in was let through without a code.
+      loginAnswers([const AuthNeeds2FA(), const Unclassified('odd answer')]);
+      final records = <LogRecord>[];
+      final subscription = Logger('returner').onRecord.listen(records.add);
+      addTearDown(subscription.cancel);
+
+      await auth().login('user@example.com', 'pw');
+      await auth().submitCode('123456');
+
+      expect(state().status, AuthStatus.signedOut);
+      expect(
+        records.map((r) => r.message),
+        containsAll([
+          'Sign-in: a code was entered',
+          contains('UNCLASSIFIED — odd answer'),
+        ]),
+      );
+      expect(records.map((r) => r.message).join(), isNot(contains('123456')));
+    });
+
+    test('asking for the code again without a pending sign-in', () async {
+      await auth().resendCode();
+      expect(state().status, AuthStatus.signedOut);
+      verifyNever(
+        () => ipatool.login(
+          any(),
+          any(),
+          code: any(named: 'code'),
+          cancel: any(named: 'cancel'),
+        ),
+      );
+    });
 
     test('a wrong code keeps the 2FA step open with an error', () async {
       loginAnswers([const AuthNeeds2FA(), const AuthInvalidCode(), _account]);

@@ -38,9 +38,16 @@ void main() {
           .map((row) => row['name']);
       expect(
         tables,
-        containsAll(['accounts', 'packages', 'operations', 'operation_events']),
+        containsAll([
+          'accounts',
+          'packages',
+          'operations',
+          'operation_events',
+          'purchase_sync',
+          'version_lists',
+        ]),
       );
-      expect(reopened.db.select('PRAGMA user_version').first.columnAt(0), 1);
+      expect(reopened.db.select('PRAGMA user_version').first.columnAt(0), 3);
       reopened.close();
     });
   });

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:returner/core/cancel.dart';
 import 'package:returner/core/errors.dart';
@@ -155,6 +156,50 @@ void main() {
       );
     });
 
+    test('does not retry by itself, even right after registering this '
+        'computer', () async {
+      runner.on(
+        'ipatool',
+        ['auth', 'login'],
+        FakeResponse(
+          stdout: '{"level":"info","message":"2FA code is required; run the command again and supply a code using the `--auth-code` flag"}',
+          effect: () => File(p.join(service.stateDirectory, 'anisette-v4'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('state'),
+        ),
+      );
+      await expectLater(
+        service.login('user@example.com', 'pw'),
+        throwsA(isA<AuthNeeds2FA>()),
+      );
+      expect(
+        runner.calls.where((c) => c.arguments.contains('login')),
+        hasLength(1),
+      );
+    });
+
+    test('an unknown answer without success still asks for a code, '
+        'but is logged masked', () async {
+      runner.on(
+        'ipatool',
+        ['auth', 'login'],
+        const FakeResponse(
+          stdout:
+              '{"level":"info","message":"something new for anna@icloud.com"}',
+        ),
+      );
+      final records = <LogRecord>[];
+      final subscription = Logger('returner').onRecord.listen(records.add);
+      addTearDown(subscription.cancel);
+      await expectLater(
+        service.login('user@example.com', 'pw'),
+        throwsA(isA<AuthNeeds2FA>()),
+      );
+      final warning = records.singleWhere((r) => r.level == Level.WARNING);
+      expect(warning.message, contains('something new for a***@icloud.com'));
+      expect(warning.message, isNot(contains('anna@')));
+    });
+
     test('passes the 2FA code on stdin', () async {
       runner
         ..on('ipatool', ['auth', 'login'], loginOk)
@@ -185,6 +230,80 @@ void main() {
         service.login('user@example.com', 'pw'),
         throwsA(isA<AppleLoginRejected>()),
       );
+    });
+
+    group('text Apple marked as its own', () {
+      FakeResponse apple(String message) => FakeResponse(
+        exitCode: 1,
+        stdout: jsonEncode({
+          'level': 'error',
+          'error': message,
+          'appleMessage': true,
+          'success': false,
+        }),
+      );
+
+      test('is shown with the trusted apple.com link split off', () async {
+        runner.on(
+          'ipatool',
+          ['auth', 'login'],
+          apple(
+            'This Apple Account has been locked for security reasons.: '
+            'Reset your password to continue. '
+            '(Reset: https://iforgot.apple.com/cgi-bin/iforgot.cgi)',
+          ),
+        );
+        await expectLater(
+          service.login('user@example.com', 'pw'),
+          throwsA(
+            isA<AppleSignInMessage>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'This Apple Account has been locked for security reasons.: '
+                      'Reset your password to continue.',
+                )
+                .having(
+                  (e) => e.link.toString(),
+                  'link',
+                  'https://iforgot.apple.com/cgi-bin/iforgot.cgi',
+                ),
+          ),
+        );
+      });
+
+      test('keeps a link outside apple.com as plain text', () async {
+        const text =
+            'Sign-in is not possible. (Open: https://apple.com.evil.example/x)';
+        runner.on('ipatool', ['auth', 'login'], apple(text));
+        await expectLater(
+          service.login('user@example.com', 'pw'),
+          throwsA(
+            isA<AppleSignInMessage>()
+                .having((e) => e.message, 'message', text)
+                .having((e) => e.link, 'link', isNull),
+          ),
+        );
+      });
+
+      test('a known reading still wins', () async {
+        runner.on('ipatool', [
+          'auth',
+          'login',
+        ], apple('Too many attempts. Try again later.'));
+        await expectLater(
+          service.login('user@example.com', 'pw'),
+          throwsA(isA<AuthRateLimited>()),
+        );
+      });
+
+      test('an unmarked unknown error stays unclassified', () async {
+        runner.on('ipatool', ['auth', 'info'], error('Something odd'));
+        await expectLater(
+          service.currentAccount(),
+          throwsA(isA<Unclassified>()),
+        );
+      });
     });
 
     test('does not trust a login that left no readable session', () async {
@@ -403,6 +522,67 @@ void main() {
         throwsA(isA<AuthSessionExpired>()),
       );
     });
+
+    // Error text as reported upstream (majd/ipatool#659).
+    test('a session without this computer\'s registration asks to sign in '
+        'again', () async {
+      runner.on('ipatool', [
+        'download',
+      ], failed('download_amd_not_provisioned.json'));
+      await expectLater(
+        service.download(const AppRef(appStoreId: '1'), 'out.ipa'),
+        throwsA(isA<AuthSessionExpired>()),
+      );
+    });
+
+    // Error text as reported upstream (majd/ipatool#654, #656).
+    test('an empty 403 for an app that left the store is RedownloadRefused, '
+        'not an unknown cause', () async {
+      runner.on('ipatool', [
+        'download',
+      ], failed('download_redownload_forbidden.json'));
+      await expectLater(
+        service.download(const AppRef(appStoreId: '1'), 'out.ipa'),
+        throwsA(isA<RedownloadRefused>()),
+      );
+    });
+
+    test('both ways back failing is RedownloadRefused', () async {
+      runner.on(
+        'ipatool',
+        ['download'],
+        error(
+          "app 1 has no offer in the account's App Store catalog and the "
+          'kbsync fallback failed: failed to send redownload request: send '
+          'Store commerce request: unexpected response from Apple (HTTP 403): '
+          'empty or non-plist body\nsend ent/download request: unexpected '
+          'response from Apple (HTTP 403): empty or non-plist body',
+        ),
+      );
+      await expectLater(
+        service.download(const AppRef(appStoreId: '1'), 'out.ipa'),
+        throwsA(isA<RedownloadRefused>()),
+      );
+    });
+
+    test(
+      'a network cause inside a failed way back stays a network error',
+      () async {
+        runner.on(
+          'ipatool',
+          ['download'],
+          error(
+            "app 1 has no offer in the account's App Store catalog and the "
+            'kbsync fallback failed: failed to send redownload request: send '
+            'Store commerce request: dial tcp: i/o timeout',
+          ),
+        );
+        await expectLater(
+          service.download(const AppRef(appStoreId: '1'), 'out.ipa'),
+          throwsA(isA<NetworkInterrupted>()),
+        );
+      },
+    );
 
     test('a crash without a JSON error is Unclassified and masked', () async {
       runner.on(

@@ -8,6 +8,7 @@ import '../../state/auth.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
 import '../strings.dart';
+import '../widgets/app_widgets.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -117,6 +118,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           title: S.loginFailed,
           body: S.errorText(error),
         ),
+        if (error case AppleSignInMessage(:final link?)) ...[
+          const SizedBox(height: AmSize.fieldGap),
+          AmBracketLink(
+            text: S.loginAppleLink(link.host),
+            style: Automatorn.code,
+            onTap: () => ref.read(urlOpenerProvider)(link.toString()),
+          ),
+        ],
         const SizedBox(height: AmSize.formGap),
       ],
       TextField(
@@ -210,6 +219,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onPressed: ref.read(authProvider.notifier).cancel,
         ),
       ],
+    ),
+    const SizedBox(height: AmSize.gapStack),
+    const AmLabel(S.loginNoCodeLabel),
+    const SizedBox(height: 8),
+    Text(S.loginNoCode, style: Automatorn.caption.copyWith(color: c.text)),
+    const SizedBox(height: 8),
+    Align(
+      alignment: Alignment.centerLeft,
+      child: AmGhostButton(
+        label: S.loginResendCode,
+        onPressed: () {
+          _code.clear();
+          setState(() => _formError = null);
+          ref.read(authProvider.notifier).resendCode();
+        },
+      ),
     ),
   ];
 }

@@ -83,6 +83,24 @@ class AppDatabase {
       PRIMARY KEY (operation_id, sequence)
     );
     ''',
+    // 2: when the purchase history of an account was last fetched in full.
+    '''
+    CREATE TABLE purchase_sync (
+      account_id TEXT PRIMARY KEY,
+      synced_at INTEGER NOT NULL,
+      total_count INTEGER NOT NULL
+    );
+    ''',
+    // 3: the build list of an app as last fetched, newest first (JSON array).
+    '''
+    CREATE TABLE version_lists (
+      account_id TEXT NOT NULL,
+      app_store_id TEXT NOT NULL,
+      ids TEXT NOT NULL,
+      fetched_at INTEGER NOT NULL,
+      PRIMARY KEY (account_id, app_store_id)
+    );
+    ''',
   ];
 
   void _migrate() {

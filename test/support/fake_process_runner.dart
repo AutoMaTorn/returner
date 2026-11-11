@@ -23,6 +23,7 @@ class FakeResponse {
     this.stdout = '',
     this.stderr = '',
     this.hang = false,
+    this.effect,
   });
 
   final int exitCode;
@@ -31,6 +32,10 @@ class FakeResponse {
 
   /// Never exits on its own; only [RunningProcess.kill] or a timeout ends it.
   final bool hang;
+
+  /// Runs when the call is answered, before the process "exits": a place to
+  /// imitate files the tool writes or to change later answers.
+  final void Function()? effect;
 }
 
 /// Scripted [ProcessRunner]: answers by tool name and arguments, records every
@@ -60,7 +65,12 @@ class FakeProcessRunner implements ProcessRunner {
   FakeResponse _respond(FakeCall call) {
     calls.add(call);
     for (final rule in _rules) {
-      if (rule.matches(call)) return rule.response;
+      if (rule.matches(call)) {
+        // An effect may add rules; safe, the loop does not go on after it.
+        final response = rule.response;
+        response.effect?.call();
+        return response;
+      }
     }
     throw StateError(
       'No fake response for ${call.tool} ${call.arguments.join(' ')}',

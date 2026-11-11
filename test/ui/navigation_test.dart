@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,13 +24,22 @@ import 'package:returner/state/devices.dart';
 import 'package:returner/state/library.dart';
 import 'package:returner/state/operations.dart';
 import 'package:returner/state/providers.dart';
+import 'package:returner/state/purchases.dart';
 import 'package:returner/state/settings.dart';
 import 'package:returner/state/versions.dart';
+import 'package:returner/state/updates.dart';
+import 'package:returner/services/update_service.dart';
 import 'package:returner/theme/am_widgets.dart';
 import 'package:returner/theme/automatorn_theme.dart';
 import 'package:returner/ui/home/install_panel.dart';
 import 'package:returner/ui/strings.dart';
 import 'package:returner/ui/widgets/app_widgets.dart';
+
+final _lockedByApple = AppleSignInMessage(
+  'This Apple Account has been locked for security reasons.: '
+  'Reset your password to continue.',
+  link: Uri.parse('https://iforgot.apple.com/cgi-bin/iforgot.cgi'),
+);
 
 const _account = AccountInfo(email: 'anna@example.com', name: 'Anna');
 const _device = Device(
@@ -67,6 +77,7 @@ class _FakeAuth extends AuthController {
   final AccountInfo? saved;
   final bool needsCode;
   String? lastCode;
+  var resends = 0;
 
   @override
   AuthState build() => const AuthState(AuthStatus.unknown);
@@ -84,6 +95,8 @@ class _FakeAuth extends AuthController {
         ? const AuthState(AuthStatus.waitingForCode)
         : password == 'right'
         ? const AuthState(AuthStatus.authenticated, account: _account)
+        : password == 'locked'
+        ? AuthState(AuthStatus.signedOut, error: _lockedByApple)
         : const AuthState(
             AuthStatus.signedOut,
             error: AuthInvalidCredentials(),
@@ -94,6 +107,12 @@ class _FakeAuth extends AuthController {
   Future<void> submitCode(String code) async {
     lastCode = code;
     state = const AuthState(AuthStatus.authenticated, account: _account);
+  }
+
+  @override
+  Future<void> resendCode() async {
+    resends++;
+    state = const AuthState(AuthStatus.waitingForCode);
   }
 
   @override
@@ -206,11 +225,56 @@ class _FakeSearch extends StoreSearchController {
   }
 }
 
+/// History of 60 apps after the first refresh; app 1 is the newest.
+class _FakePurchases extends PurchasesController {
+  var refreshes = 0;
+
+  @override
+  PurchasesState build() => const PurchasesState();
+
+  @override
+  Future<void> refresh() async {
+    refreshes++;
+    state = PurchasesState(
+      history: PurchaseHistory(
+        syncedAt: DateTime.utc(2026, 11, 8, 12),
+        apps: [
+          for (var i = 1; i <= 60; i++)
+            StoreApp(
+              appStoreId: '${5000 + i}',
+              bundleId: 'com.example.p$i',
+              name: 'Покупка $i',
+              version: '2.$i',
+              purchaseDate: DateTime.utc(2019, 7, 1),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FakeVersions implements VersionsRepository {
   final resolved = <String>[];
 
+  var fetches = 0;
+  VersionList? _saved;
+
   @override
-  Future<List<String>> list(AppRef app) async => ['300', '200', '100'];
+  VersionList? saved(AppRef app) => _saved;
+
+  @override
+  Future<VersionList> list(
+    AppRef app, {
+    bool refresh = false,
+    DateTime Function() now = DateTime.now,
+  }) async {
+    if (!refresh && _saved != null) return _saved!;
+    fetches++;
+    return _saved = VersionList(
+      ids: const ['300', '200', '100'],
+      fetchedAt: DateTime.utc(2026, 11, 8, 12),
+    );
+  }
 
   @override
   VersionMetadata? cached(AppRef app, String externalVersionId) => null;
@@ -218,6 +282,7 @@ class _FakeVersions implements VersionsRepository {
   @override
   Future<VersionMetadata> metadata(AppRef app, String id) async {
     resolved.add(id);
+    if (id == '100') throw const AppleUnreachable();
     return VersionMetadata(
       externalVersionId: id,
       displayVersion: '11.$id',
@@ -260,6 +325,7 @@ void main() {
   late _FakeOperations operations;
   late _FakeLibrary library;
   late _FakeSearch search;
+  late _FakePurchases purchases;
   late _FakeDriverInstall driver;
   late _FakeVersions versions;
   late List<String> opened;
@@ -282,6 +348,7 @@ void main() {
     DriverInstallStatus driverResult = DriverInstallStatus.idle,
     DriverInstallResult? driverFailure,
     bool binariesPresent = true,
+    String? latestRelease,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -295,6 +362,7 @@ void main() {
     operations = _FakeOperations();
     library = _FakeLibrary(packages ?? [_package]);
     search = _FakeSearch();
+    purchases = _FakePurchases();
     driver = _FakeDriverInstall(driverResult, driverFailure);
     versions = _FakeVersions();
     opened = [];
@@ -323,6 +391,7 @@ void main() {
           operationsProvider.overrideWith(() => operations),
           libraryProvider.overrideWith(() => library),
           searchProvider.overrideWith(() => search),
+          purchasesProvider.overrideWith(() => purchases),
           driverInstallProvider.overrideWith(() => driver),
           versionsRepositoryProvider.overrideWithValue(versions),
           reportProvider.overrideWithValue(() => 'REPORT 0.1.0'),
@@ -366,6 +435,23 @@ void main() {
             ),
           ),
           urlOpenerProvider.overrideWithValue((url) async => opened.add(url)),
+          updateServiceProvider.overrideWithValue(
+            UpdateService(
+              client: MockClient(
+                (_) async => latestRelease == null
+                    ? http.Response('{}', 404)
+                    : http.Response(
+                        jsonEncode({
+                          'tag_name': latestRelease,
+                          'html_url':
+                              'https://github.com/AutoMaTorn/returner/releases/tag/$latestRelease',
+                        }),
+                        200,
+                      ),
+              ),
+              currentVersion: '0.2.2',
+            ),
+          ),
           saveLocationProvider.overrideWithValue(
             (name) async => '${temp.path}/$name',
           ),
@@ -392,6 +478,7 @@ void main() {
 
   Future<void> openHome(
     WidgetTester tester, {
+    String? latestRelease,
     Size size = _desktop,
     List<Device> devices = const [_device],
     List<Package>? packages,
@@ -401,6 +488,7 @@ void main() {
   }) async {
     await pumpApp(
       tester,
+      latestRelease: latestRelease,
       size: size,
       saved: _account,
       devices: devices,
@@ -460,12 +548,33 @@ void main() {
       expect(find.text(S.catalogLabel), findsOneWidget);
     });
 
+    testWidgets("Apple's own refusal is shown with its apple.com link", (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      await tap(tester, button(S.setupContinue));
+      await tester.enterText(find.byType(TextField).at(0), 'anna@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'locked');
+      await tap(tester, button(S.loginSubmit));
+
+      expect(find.text(S.errorText(_lockedByApple)), findsOneWidget);
+      await tap(
+        tester,
+        find.text('[${S.loginAppleLink('iforgot.apple.com')}]'),
+      );
+      expect(opened.last, 'https://iforgot.apple.com/cgi-bin/iforgot.cgi');
+    });
+
     testWidgets('2FA step accepts only a six-digit code', (tester) async {
       await pumpApp(tester, needsCode: true);
       await tap(tester, button(S.setupContinue));
       await tester.enterText(find.byType(TextField).at(0), 'anna@example.com');
       await tester.enterText(find.byType(TextField).at(1), 'right');
       await tap(tester, button(S.loginSubmit));
+      expect(find.text(S.loginCodeTitle), findsOneWidget);
+      expect(find.text(S.loginNoCodeLabel), findsOneWidget);
+      await tap(tester, find.text('[${S.loginResendCode}]'));
+      expect(auth.resends, 1);
       expect(find.text(S.loginCodeTitle), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), '123');
@@ -490,23 +599,87 @@ void main() {
   });
 
   group('navigation', () {
-    testWidgets('has four sections and no purchases or tasks screens', (
-      tester,
-    ) async {
+    testWidgets('has five sections and no tasks screen', (tester) async {
       await openHome(tester);
       for (final label in [
         S.sectionCatalog,
+        S.sectionPurchases,
         S.sectionSearch,
         S.sectionFiles,
         S.sectionSettings,
       ]) {
         expect(find.text(label), findsOneWidget);
       }
-      for (final gone in ['покупки', 'Покупки', 'задачи', 'Задачи']) {
+      for (final gone in ['задачи', 'Задачи']) {
         expect(find.textContaining(gone), findsNothing, reason: gone);
       }
       // The files counter sits next to its section.
       expect(find.text('1'), findsOneWidget);
+    });
+
+    testWidgets('a newer release is announced, not installed', (tester) async {
+      await openHome(tester, latestRelease: 'v0.3.0');
+      // The real HTTP mock answers outside the fake clock.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      await tap(tester, find.text('[${S.updatesNav('0.3.0')}]'));
+      expect(find.text(S.updatesAvailable('0.3.0')), findsOneWidget);
+      await tap(tester, button(S.updatesOpen));
+      expect(
+        opened.last,
+        'https://github.com/AutoMaTorn/returner/releases/tag/v0.3.0',
+      );
+    });
+
+    testWidgets('settings check for updates on request', (tester) async {
+      await openHome(tester);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      // No release yet: nothing in the side column.
+      expect(find.textContaining(S.updatesNav('')), findsNothing);
+      await tap(tester, find.text(S.sectionSettings));
+      expect(find.text('✓ ${S.updatesUpToDate}'), findsOneWidget);
+      expect(find.text(S.updatesOnStart), findsOneWidget);
+    });
+
+    testWidgets('purchases load on first visit, filter and show more', (
+      tester,
+    ) async {
+      await openHome(tester);
+      await tap(tester, find.text(S.sectionPurchases));
+      expect(purchases.refreshes, 1);
+      expect(
+        find.text(S.purchasesSynced(DateTime.utc(2026, 11, 8, 12))),
+        findsOneWidget,
+      );
+      expect(find.text('Покупка 1'), findsOneWidget);
+      expect(find.textContaining('id 5001 · июль 2019'), findsOneWidget);
+      // 50 rows at first, the rest behind «ещё».
+      expect(find.text('Покупка 50'), findsOneWidget);
+      expect(find.text('Покупка 51'), findsNothing);
+      await tap(tester, find.text('[${S.purchasesMore} 10]'));
+      expect(find.text('Покупка 60'), findsOneWidget);
+
+      // Coming back does not fetch again; the button does.
+      await tap(tester, find.text(S.sectionCatalog));
+      await tap(tester, find.text(S.sectionPurchases));
+      expect(purchases.refreshes, 1);
+      await tap(tester, find.text('[${S.purchasesRefresh}]'));
+      expect(purchases.refreshes, 2);
+
+      await tester.enterText(find.byType(TextField), 'com.example.p42');
+      await tester.pumpAndSettle();
+      expect(find.text('Покупка 42'), findsOneWidget);
+      expect(find.text('Покупка 1'), findsNothing);
+      expect(find.text('1 из 60'), findsOneWidget);
+
+      await tap(tester, find.text('Покупка 42'));
+      expect(button(S.actionInstall), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('phone width uses a bottom bar and stacks the panels', (
@@ -515,7 +688,13 @@ void main() {
       await openHome(tester, size: _phone);
       expect(find.byType(NavigationBar), findsOneWidget);
 
-      for (final label in ['поиск', 'файлы', 'настройки', 'каталог']) {
+      for (final label in [
+        'покупки',
+        'поиск',
+        'файлы',
+        'настройки',
+        'каталог',
+      ]) {
         await tap(tester, find.text(label));
         expect(tester.takeException(), isNull, reason: label);
       }
@@ -834,6 +1013,36 @@ void main() {
       },
     );
 
+    testWidgets('the build list is kept and refreshed on request', (
+      tester,
+    ) async {
+      await openHome(tester);
+      await tap(tester, find.text('СберБанк Онлайн'));
+      await tap(tester, button(S.actionPickVersion));
+      expect(versions.fetches, 1);
+      expect(
+        find.text(S.versionsFetched(DateTime.utc(2026, 11, 8, 12))),
+        findsOneWidget,
+      );
+      await tap(tester, find.text('[${S.cancel}]'));
+
+      // Opening again does not wait for Apple.
+      await tap(tester, button(S.actionPickVersion));
+      expect(versions.fetches, 1);
+      expect(find.text('сборка 100'), findsOneWidget);
+
+      await tap(tester, find.text('[${S.versionsRefresh}]'));
+      expect(versions.fetches, 2);
+      expect(find.text('сборка 100'), findsOneWidget);
+
+      // A failed lookup says why instead of only offering «ещё раз».
+      await tap(tester, find.text('[${S.versionsResolve}]').last);
+      expect(find.text(S.versionsLookupFailed), findsOneWidget);
+      expect(find.text(S.versionsLookupFailedShort), findsOneWidget);
+      expect(find.text('[${S.versionsRetry}]'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('going back to the latest version clears the pin', (
       tester,
     ) async {
@@ -922,6 +1131,8 @@ void main() {
 
       await tap(tester, find.text('[ipatool]'));
       expect(opened.last, 'https://github.com/majd/ipatool');
+      await tap(tester, find.text('[${S.aboutSource}]'));
+      expect(opened.last, 'https://github.com/AutoMaTorn/returner');
     });
   });
 

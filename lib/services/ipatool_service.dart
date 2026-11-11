@@ -73,7 +73,44 @@ class IpatoolService {
     }
   }
 
+  /// Where ipatool keeps the Apple device registration of this computer.
+  static const _deviceStateFile = 'anisette-v4';
+
+  bool get _deviceRegistered =>
+      File(p.join(stateDirectory, _deviceStateFile)).existsSync();
+
+  /// One sign-in attempt, logged with whether this computer was already
+  /// registered with Apple. Observed (live 2026-11-09, two computers): a new
+  /// registration gets "code required" without a code being sent, an
+  /// immediate retry gets the same, and a retry minutes later is let in
+  /// without a code. Retrying is up to the caller ([AuthController]).
   Future<AccountInfo> _login(
+    String email,
+    String password, {
+    String? code,
+    CancelToken? cancel,
+  }) async {
+    final withCode = code != null && code.isNotEmpty;
+    final device = _deviceRegistered ? 'known device' : 'new device';
+    try {
+      final account = await _loginAttempt(
+        email,
+        password,
+        code: code,
+        cancel: cancel,
+      );
+      Log.info(
+        'Sign-in: done ${withCode ? 'with a code' : 'without a code'} '
+        '($device)',
+      );
+      return account;
+    } on AuthNeeds2FA {
+      Log.info('Sign-in: Apple asked for a 2FA code ($device)');
+      rethrow;
+    }
+  }
+
+  Future<AccountInfo> _loginAttempt(
     String email,
     String password, {
     String? code,
@@ -93,6 +130,13 @@ class IpatoolService {
       // Without a code ipatool exits 0 and only prints a hint.
       final text = lines.map((line) => line['message'] ?? '').join('\n');
       final error = mapIpatoolError(text, duringLogin: true);
+      if (error is Unclassified) {
+        // Not the known "code required" hint: the code field is a guess.
+        Log.warning(
+          'Sign-in ended without success or a known answer: '
+          '${error.safeDetails}',
+        );
+      }
       throw error is Unclassified ? const AuthNeeds2FA() : error;
     }
     _generation++;
@@ -321,11 +365,20 @@ class IpatoolService {
     final errorLine = lines.where((l) => l['level'] == 'error').lastOrNull;
     if (errorLine != null) {
       final metadata = errorLine['metadata'];
-      throw mapIpatoolError(
-        '${errorLine['error'] ?? ''}'
-        '${metadata == null ? '' : ' metadata=${jsonEncode(metadata)}'}',
+      final text = '${errorLine['error'] ?? ''}';
+      final error = mapIpatoolError(
+        '$text${metadata == null ? '' : ' metadata=${jsonEncode(metadata)}'}',
         duringLogin: duringLogin,
       );
+      // Our build marks text Apple wrote for the person; when we have no
+      // better reading of it, show it rather than "unknown cause".
+      if (error is Unclassified &&
+          errorLine['appleMessage'] == true &&
+          text.trim().isNotEmpty) {
+        Log.warning('Apple refused with its own message: ${mask(text)}');
+        throw appleSignInMessage(text);
+      }
+      throw error;
     }
     if (exitCode != 0) {
       // No structured error: a crash or output we do not understand.

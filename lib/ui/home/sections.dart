@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/app_ref.dart';
 import '../../state/catalog.dart';
 import '../../state/library.dart';
+import '../../state/purchases.dart';
 import '../../state/selection.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
@@ -114,6 +115,194 @@ class _CatalogPanelState extends ConsumerState<CatalogPanel> {
                     ),
                   ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The account's purchase history, saved locally. It opens at once from the
+/// database; a full fetch runs on first visit and on request.
+class PurchasesPanel extends ConsumerStatefulWidget {
+  const PurchasesPanel({super.key});
+
+  /// Rows shown at first and added by «ещё»: every row asks for its icon.
+  static const pageSize = 50;
+
+  @override
+  ConsumerState<PurchasesPanel> createState() => _PurchasesPanelState();
+}
+
+class _PurchasesPanelState extends ConsumerState<PurchasesPanel> {
+  final _filter = TextEditingController();
+  var _shown = PurchasesPanel.pageSize;
+
+  @override
+  void initState() {
+    super.initState();
+    // First visit for this account: fetch without waiting for a click.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = ref.read(purchasesProvider);
+      if (state.history == null && !state.loading && state.error == null) {
+        ref.read(purchasesProvider.notifier).refresh();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _filter.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.am;
+    final state = ref.watch(purchasesProvider);
+    final history = state.history;
+    final selected = ref.watch(selectionProvider)?.key;
+    final query = _filter.text.trim().toLowerCase();
+    final all = history?.apps ?? const [];
+    final rows = query.isEmpty
+        ? all
+        : [
+            for (final app in all)
+              if (app.name.toLowerCase().contains(query) ||
+                  app.bundleId.toLowerCase().contains(query) ||
+                  app.appStoreId.contains(query))
+                app,
+          ];
+    final visible = rows.take(_shown).toList();
+    final refresh = ref.read(purchasesProvider.notifier).refresh;
+
+    return AmPanel(
+      title: S.purchasesLabel,
+      action: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (history != null)
+            Text(
+              query.isEmpty
+                  ? '${all.length}'
+                  : '${rows.length} из ${all.length}',
+              style: Automatorn.footer.copyWith(
+                color: c.muted,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          if (history != null) ...[
+            const SizedBox(width: 8),
+            AmGhostButton(
+              label: S.purchasesRefresh,
+              small: true,
+              onPressed: state.loading ? null : refresh,
+            ),
+          ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (state.loading) ...[
+            Row(
+              children: [
+                const AmSpinner(),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    S.purchasesLoading(state.loaded, state.total),
+                    style: Automatorn.code.copyWith(color: c.text),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (state.error != null) ...[
+            AmNotice(
+              tone: AmTone.danger,
+              title: S.purchasesRefreshFailed,
+              body: S.errorText(state.error!),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (history == null && !state.loading)
+            AmEmptyState(
+              label: S.purchasesNeverLabel,
+              text: S.purchasesNever,
+              actions: [
+                OutlinedButton(
+                  onPressed: refresh,
+                  child: const Text(S.purchasesLoad),
+                ),
+              ],
+            )
+          else if (history != null && all.isEmpty)
+            AmEmptyState(label: S.purchasesEmptyLabel, text: S.purchasesEmpty)
+          else if (history != null) ...[
+            Text(
+              S.purchasesSynced(history.syncedAt),
+              style: Automatorn.meta.copyWith(color: c.muted),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _filter,
+              autocorrect: false,
+              style: Automatorn.code.copyWith(color: c.ink),
+              onChanged: (_) =>
+                  setState(() => _shown = PurchasesPanel.pageSize),
+              decoration: const InputDecoration(
+                labelText: S.purchasesFilter,
+                hintText: S.purchasesFilterHint,
+                prefixIcon: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: AmIcon('search'),
+                ),
+                prefixIconConstraints: BoxConstraints(minWidth: 32),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (rows.isEmpty)
+              AmEmptyState(
+                label: S.searchEmptyLabel,
+                text: S.purchasesFilterEmpty(_filter.text.trim()),
+              ),
+            for (final app in visible)
+              AppListItem(
+                appStoreId: app.appStoreId,
+                title: app.name,
+                subtitle: [
+                  ?app.version,
+                  'id ${app.appStoreId}',
+                  if (app.purchaseDate != null) S.monthYear(app.purchaseDate!),
+                ].join(' · '),
+                selected: selected == app.appStoreId,
+                trailing: OperationTag(app.appStoreId),
+                onTap: () => ref
+                    .read(selectionProvider.notifier)
+                    .select(
+                      Selection.app(
+                        AppRef(
+                          appStoreId: app.appStoreId,
+                          bundleId: app.bundleId,
+                        ),
+                        title: app.name,
+                      ),
+                    ),
+              ),
+            if (rows.length > visible.length) ...[
+              const SizedBox(height: 8),
+              AmGhostButton(
+                label:
+                    '${S.purchasesMore} '
+                    '${(rows.length - visible.length).clamp(0, PurchasesPanel.pageSize)}',
+                onPressed: () =>
+                    setState(() => _shown += PurchasesPanel.pageSize),
+              ),
+            ],
+          ],
         ],
       ),
     );

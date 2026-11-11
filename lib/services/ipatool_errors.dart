@@ -11,6 +11,32 @@ String? appleCustomerMessage(String output) {
 
 bool _any(String value, List<String> needles) => needles.any(value.contains);
 
+// ipatool appends Apple's button as " (<label>: <https url>)".
+final _dialogAction = RegExp(
+  r'^(.*?)\s*\(([^()]*): (https://[^\s()]+)\)\s*$',
+  dotAll: true,
+);
+
+/// Splits a text ipatool marked as Apple's own into the message and the
+/// apple.com page Apple's dialog button leads to. Any other link stays in
+/// the text and is not offered as a link.
+AppleSignInMessage appleSignInMessage(String text) {
+  final trimmed = text.trim();
+  final match = _dialogAction.firstMatch(trimmed);
+  final uri = match == null ? null : Uri.tryParse(match[3]!);
+  final host = uri?.host.toLowerCase() ?? '';
+  final trusted =
+      uri != null &&
+      uri.scheme == 'https' &&
+      uri.userInfo.isEmpty &&
+      (host == 'apple.com' || host.endsWith('.apple.com'));
+  final message = trusted ? match![1]!.trim() : trimmed;
+  return AppleSignInMessage(
+    message.isEmpty ? trimmed : message,
+    link: trusted ? uri : null,
+  );
+}
+
 /// Maps an ipatool error text to a typed error.
 ///
 /// Strings marked "observed" come from real output; the rest are hypotheses
@@ -39,6 +65,9 @@ AppError mapIpatoolError(String output, {bool duringLogin = false}) {
     'password token is expired',
     'passwordtokenexpired',
     'session expired',
+    // Reported upstream (majd/ipatool#659): the saved session lacks this
+    // computer's registration with Apple; signing in again creates it.
+    'store amd state is not provisioned',
   ])) {
     return const AuthSessionExpired();
   }
@@ -142,6 +171,14 @@ AppError mapIpatoolError(String output, {bool duringLogin = false}) {
       ]) ||
       (value.contains('x509') && value.contains('certificate'))) {
     return const AppleUnreachable();
+  }
+
+  // Checked last, so a network or session cause named in the same text wins.
+  // The 403 is reported upstream (majd/ipatool#654, #656) for apps that left
+  // the store; "no offer" is what our build says when both ways back failed.
+  if (value.contains("no offer in the account's app store catalog") ||
+      (value.contains('redownload request') && value.contains('http 403'))) {
+    return const RedownloadRefused();
   }
 
   return Unclassified(mask(output.trim()));

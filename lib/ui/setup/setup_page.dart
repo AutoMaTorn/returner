@@ -7,6 +7,7 @@ import '../../state/auth.dart';
 import '../../state/operations.dart';
 import '../../state/providers.dart';
 import '../../state/settings.dart';
+import '../../state/updates.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
 import '../strings.dart';
@@ -30,6 +31,8 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   }
 
   Future<void> _prepare() async {
+    // In the background: nothing waits for GitHub.
+    ref.read(updatesProvider.notifier).checkOnStart();
     setState(() {
       _ready = false;
       _error = null;

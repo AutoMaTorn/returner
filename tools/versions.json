@@ -2,9 +2,9 @@
   "ipatool": {
     "repo": "majd/ipatool",
     "source": "build",
-    "version": "2.7.0-returner.1",
-    "tag": "v2.7.0",
-    "commit": "4484b55d366e177ae6c89758c61588712c572fad",
+    "version": "2.8.0+8771e57-returner.3",
+    "tag": null,
+    "commit": "8771e57445272459b83b7d423170cc518e419647",
     "patch": "tools/patches/ipatool-credentials-stdin.patch",
     "versionVariable": "github.com/majd/ipatool/v2/cmd.version",
     "license": "MIT",

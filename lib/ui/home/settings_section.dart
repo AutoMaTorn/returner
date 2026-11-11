@@ -7,6 +7,7 @@ import '../../state/auth.dart';
 import '../../state/devices.dart';
 import '../../state/providers.dart';
 import '../../state/settings.dart';
+import '../../state/updates.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
 import '../strings.dart';
@@ -15,6 +16,9 @@ import '../widgets/app_widgets.dart';
 /// A reading screen: one column, sections under lowercase labels.
 class SettingsSection extends ConsumerWidget {
   const SettingsSection({super.key});
+
+  /// Source code of this app.
+  static const _source = 'https://github.com/AutoMaTorn/returner';
 
   static const _upstream = {
     'ipatool': 'https://github.com/majd/ipatool',
@@ -29,10 +33,15 @@ class SettingsSection extends ConsumerWidget {
     final mode = ref.watch(themeModeProvider);
     final country = ref.watch(lookupCountryProvider);
     final open = ref.read(urlOpenerProvider);
+    final updates = ref.watch(updatesProvider);
 
-    Widget section(String label, List<Widget> children) => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [AmLabel(label), const SizedBox(height: 12), ...children],
+    var order = 0;
+    Widget section(String label, List<Widget> children) => AmAppear(
+      order: order++,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [AmLabel(label), const SizedBox(height: 12), ...children],
+      ),
     );
     Widget note(String text) => Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -117,6 +126,11 @@ class SettingsSection extends ConsumerWidget {
                 onPressed: () => _showLicenses(context),
                 child: const Text(S.aboutLicenses),
               ),
+              AmBracketLink(
+                text: S.aboutSource,
+                style: Automatorn.code,
+                onTap: () => open(_source),
+              ),
               for (final entry in _upstream.entries)
                 AmBracketLink(
                   text: entry.key,
@@ -125,6 +139,44 @@ class SettingsSection extends ConsumerWidget {
                 ),
             ],
           ),
+        ]),
+        section(S.updatesLabel, [
+          if (updates.update case final update?) ...[
+            AmNotice(
+              title: S.updatesAvailable(update.version),
+              body: S.updatesAvailableBody(appVersion),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () => open(update.pageUrl),
+              child: const Text(S.updatesOpen),
+            ),
+            const SizedBox(height: AmSize.gapCopy),
+          ],
+          Row(
+            children: [
+              Flexible(child: _UpdateStatus(updates.status)),
+              const SizedBox(width: 8),
+              AmGhostButton(
+                label: S.updatesCheck,
+                small: true,
+                onPressed: updates.status == UpdateStatus.checking
+                    ? null
+                    : ref.read(updatesProvider.notifier).check,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              S.updatesOnStart,
+              style: Automatorn.code.copyWith(color: c.text),
+            ),
+            value: ref.watch(checkUpdatesOnStartProvider),
+            onChanged: ref.read(checkUpdatesOnStartProvider.notifier).set,
+          ),
+          note(S.updatesOnStartNote),
         ]),
       ],
     );
@@ -202,5 +254,38 @@ class _LicensesDialogState extends State<_LicensesDialog> {
         ),
       ],
     );
+  }
+}
+
+/// One line about the last update check. Colour is a signal, always with a
+/// sign and words.
+class _UpdateStatus extends StatelessWidget {
+  const _UpdateStatus(this.status);
+
+  final UpdateStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.am;
+    final style = Automatorn.code;
+    return switch (status) {
+      UpdateStatus.checking => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const AmSpinner(),
+          const SizedBox(width: 8),
+          Text(S.updatesChecking, style: style.copyWith(color: c.text)),
+        ],
+      ),
+      UpdateStatus.upToDate => Text(
+        '✓ ${S.updatesUpToDate}',
+        style: style.copyWith(color: c.success),
+      ),
+      UpdateStatus.failed => Text(
+        '! ${S.updatesFailed}',
+        style: style.copyWith(color: c.danger),
+      ),
+      UpdateStatus.available || UpdateStatus.idle => const SizedBox.shrink(),
+    };
   }
 }

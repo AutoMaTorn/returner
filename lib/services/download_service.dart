@@ -114,8 +114,9 @@ class DownloadService {
         allowPurchase: allowPurchase,
         cancel: processCancel,
       );
+      // Exact size, even if lower: merging parts can briefly count one twice.
       final finalBytes = _artifactBytes(output);
-      if (finalBytes > lastBytes) onProgress?.call(finalBytes);
+      if (finalBytes != lastBytes) onProgress?.call(finalBytes);
       return result;
     } on Cancelled {
       if (startupTimedOut && !(cancel?.isCancelled ?? false)) {
@@ -127,18 +128,30 @@ class DownloadService {
     }
   }
 
-  /// Size of the output or its `.tmp` companion, whichever is larger.
+  /// Where ipatool stages the extra ranges of a large parallel download
+  /// before appending them to `.tmp`.
+  static String _partsPath(String output) => '$output.tmp.ipatool-parts';
+
+  /// Size of the output, or of `.tmp` plus staged parts, whichever is larger.
   static int _artifactBytes(String output) {
-    var max = 0;
-    for (final path in [output, '$output.tmp']) {
+    int sizeOf(File file) {
       try {
-        final size = File(path).lengthSync();
-        if (size > max) max = size;
+        return file.lengthSync();
       } on FileSystemException {
-        // Not created yet, or just renamed.
+        return 0; // Not created yet, or just renamed or merged.
       }
     }
-    return max;
+
+    var staged = sizeOf(File('$output.tmp'));
+    try {
+      for (final part in Directory(_partsPath(output)).listSync()) {
+        if (part is File) staged += sizeOf(part);
+      }
+    } on FileSystemException {
+      // No parallel download in progress.
+    }
+    final done = sizeOf(File(output));
+    return done > staged ? done : staged;
   }
 
   static Future<void> _removeArtifacts(String output) async {
@@ -148,6 +161,12 @@ class DownloadService {
       } on FileSystemException {
         // Nothing to remove.
       }
+    }
+    // A killed ipatool leaves its staging directory behind.
+    try {
+      await Directory(_partsPath(output)).delete(recursive: true);
+    } on FileSystemException {
+      // Nothing to remove.
     }
   }
 

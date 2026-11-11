@@ -8,6 +8,7 @@ import '../../state/devices.dart';
 import '../../state/library.dart';
 import '../../state/selection.dart';
 import '../../state/settings.dart';
+import '../../state/updates.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
 import '../strings.dart';
@@ -21,6 +22,7 @@ const _wideLayout = 840.0;
 
 const _sections = [
   (section: HomeSection.catalog, label: S.sectionCatalog, icon: 'menu'),
+  (section: HomeSection.purchases, label: S.sectionPurchases, icon: 'check'),
   (section: HomeSection.search, label: S.sectionSearch, icon: 'search'),
   (section: HomeSection.files, label: S.sectionFiles, icon: 'download'),
   (section: HomeSection.settings, label: S.sectionSettings, icon: 'info'),
@@ -101,11 +103,16 @@ class _Content extends ConsumerWidget {
         child: SettingsSection(),
       );
     }
-    final list = switch (section) {
-      HomeSection.search => const SearchPanel(),
-      HomeSection.files => const FilesPanel(),
-      _ => const CatalogPanel(),
-    };
+    // A new section comes in; the install panel stays as it is.
+    final list = AmAppear(
+      key: ValueKey(section),
+      child: switch (section) {
+        HomeSection.purchases => const PurchasesPanel(),
+        HomeSection.search => const SearchPanel(),
+        HomeSection.files => const FilesPanel(),
+        _ => const CatalogPanel(),
+      },
+    );
     final hasSelection = ref.watch(
       selectionProvider.select((selection) => selection != null),
     );
@@ -136,7 +143,10 @@ class _Content extends ConsumerWidget {
                             width: 360,
                             child: _Scrolling(
                               bottom: gap,
-                              child: const InstallPanel(),
+                              child: const AmAppear(
+                                order: 1,
+                                child: InstallPanel(),
+                              ),
                             ),
                           ),
                         ],
@@ -199,6 +209,7 @@ class _SideNav extends ConsumerWidget {
     final devices = ref.watch(devicesProvider).value ?? const [];
     final dark = ref.watch(themeModeProvider) == ThemeMode.dark;
     final files = ref.watch(libraryProvider).length;
+    final update = ref.watch(updatesProvider).update;
 
     final deviceTitle = ref.watch(driverMissingProvider)
         ? S.deviceDriverMissing
@@ -262,6 +273,17 @@ class _SideNav extends ConsumerWidget {
                 ],
               ),
             ),
+            if (update != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: AmBracketLink(
+                  text: S.updatesNav(update.version),
+                  style: Automatorn.code,
+                  onTap: () => ref
+                      .read(homeSectionProvider.notifier)
+                      .show(HomeSection.settings),
+                ),
+              ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,

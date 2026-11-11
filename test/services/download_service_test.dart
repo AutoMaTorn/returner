@@ -110,6 +110,59 @@ void main() {
     },
   );
 
+  test('counts staged parts of a parallel download and ends exact', () async {
+    script([
+      (output, cancel) async {
+        // Like ipatool for a large file: range 0 grows `.tmp`, the other
+        // ranges grow files in `<output>.tmp.ipatool-parts/`.
+        final tmp = File('$output.tmp')..writeAsBytesSync(List.filled(1000, 1));
+        final parts = Directory('$output.tmp.ipatool-parts')..createSync();
+        for (var i = 1; i < 4; i++) {
+          File('${parts.path}/$i').writeAsBytesSync(List.filled(1000, 1));
+          await Future<void>.delayed(const Duration(milliseconds: 25));
+        }
+        // Merge: each part is appended to `.tmp` before it is removed, so
+        // for a moment its bytes are counted twice.
+        for (var i = 1; i < 4; i++) {
+          tmp.writeAsBytesSync(List.filled(1000, 1), mode: FileMode.append);
+          await Future<void>.delayed(const Duration(milliseconds: 25));
+          File('${parts.path}/$i').deleteSync();
+        }
+        parts.deleteSync();
+        tmp.renameSync(output);
+        return DownloadResult(path: output, licenseAcquired: false);
+      },
+    ]);
+    final progress = <int>[];
+
+    await service().download(_app, staging, onProgress: progress.add);
+
+    expect(
+      progress.where((b) => b > 1000 && b < 4000),
+      isNotEmpty,
+      reason: 'parts move the progress before the merge',
+    );
+    expect(progress.last, 4000);
+  });
+
+  test('cancellation removes the parts directory', () async {
+    script([
+      (output, cancel) async {
+        File('$output.tmp').writeAsBytesSync([1]);
+        Directory('$output.tmp.ipatool-parts').createSync();
+        File('$output.tmp.ipatool-parts/1').writeAsBytesSync([1]);
+        await cancel.whenCancelled;
+        throw const Cancelled();
+      },
+    ]);
+    final cancel = CancelToken();
+    final download = service().download(_app, staging, cancel: cancel);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    cancel.cancel();
+    await expectLater(download, throwsA(isA<Cancelled>()));
+    expect(Directory(staging).listSync(), isEmpty);
+  });
+
   test('passes allowPurchase through', () async {
     script([succeed]);
     await service().download(_app, staging, allowPurchase: true);
@@ -149,6 +202,7 @@ void main() {
   for (final error in <AppError>[
     const LicenseRequired(),
     const AssetUnavailable(),
+    const RedownloadRefused(),
     const AuthSessionExpired(),
     const AuthInvalidCredentials(),
     const VersionUnavailable(),

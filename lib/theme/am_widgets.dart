@@ -533,3 +533,64 @@ class _AmSpinnerState extends State<AmSpinner> with SingleTickerProviderStateMix
     );
   }
 }
+
+/// Appearance of a block: opacity 0 → 1 and a 4px rise, 240 ms on
+/// `AmSize.easeSoft`. Blocks of one screen pass their [order] so they come
+/// in one after another, 40 ms apart. With animations off the block is shown
+/// at once.
+class AmAppear extends StatefulWidget {
+  const AmAppear({super.key, required this.child, this.order = 0});
+
+  final Widget child;
+
+  /// Position among the blocks of the screen; the delay stops growing at 5.
+  final int order;
+
+  @override
+  State<AmAppear> createState() => _AmAppearState();
+}
+
+class _AmAppearState extends State<AmAppear> with SingleTickerProviderStateMixin {
+  static const _step = Duration(milliseconds: 40);
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 240),
+  );
+  late final Animation<double> _curve = CurvedAnimation(parent: _controller, curve: AmSize.easeSoft);
+  var _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+      _started = true;
+    } else if (!_started) {
+      _started = true;
+      final order = widget.order.clamp(0, 5);
+      if (order == 0) {
+        _controller.forward();
+      } else {
+        Future<void>.delayed(_step * order, () {
+          if (mounted) _controller.forward();
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _curve,
+    child: widget.child,
+    builder: (context, child) => Opacity(
+      opacity: _curve.value,
+      child: Transform.translate(offset: Offset(0, 4 * (1 - _curve.value)), child: child),
+    ),
+  );
+}

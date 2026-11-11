@@ -49,6 +49,17 @@ class AppleLoginRejected extends AppError {
   const AppleLoginRejected() : super('APPLE_LOGIN_REJECTED');
 }
 
+/// Apple refused the sign-in and explained why in its own words: a sign-in
+/// dialog (a locked account, a password reset) or a customer message.
+/// [link] is an https page on apple.com that Apple offered, if any.
+class AppleSignInMessage extends AppError {
+  const AppleSignInMessage(this.message, {this.link})
+    : super('APPLE_SIGN_IN_MESSAGE');
+
+  final String message;
+  final Uri? link;
+}
+
 /// The account has not accepted the App Store terms or has no storefront.
 class AccountNotReady extends AppError {
   const AccountNotReady() : super('ACCOUNT_NOT_READY');
@@ -71,6 +82,13 @@ class AssetUnavailable extends AppError {
   const AssetUnavailable([this.appleMessage]) : super('ASSET_UNAVAILABLE');
 
   final String? appleMessage;
+}
+
+/// The app has left the store and Apple turned down the requests that bring
+/// it back for this account (an empty 403, a failed fallback) without saying
+/// why. Not a final "no": the same request may pass later.
+class RedownloadRefused extends AppError {
+  const RedownloadRefused() : super('REDOWNLOAD_REFUSED');
 }
 
 class VersionUnavailable extends AppError {

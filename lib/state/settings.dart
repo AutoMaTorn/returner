@@ -180,8 +180,8 @@ final bundledIconsProvider = FutureProvider<Set<String>>((ref) async {
 
 const bundledIconPrefix = 'assets/catalog_icons/';
 
-const appVersion = '0.2.1';
-const ipatoolVersion = '2.7.0-returner.1';
+const appVersion = '0.2.3';
+const ipatoolVersion = '2.8.0+8771e57-returner.3';
 const goIosVersion = '1.3.2';
 
 /// Text for "copy report": version, recent operations and the log tail,

@@ -106,7 +106,8 @@ Future<void> _build({
   required bool force,
 }) async {
   final repo = tool['repo'] as String;
-  final tag = tool['tag'] as String;
+  // `tag` is informational: the build may pin an untagged upstream commit.
+  final tag = tool['tag'] as String?;
   final commit = tool['commit'] as String;
   final version = tool['version'] as String;
   final patch = File(tool['patch'] as String);
@@ -137,17 +138,30 @@ Future<void> _build({
   if (src.existsSync()) src.deleteSync(recursive: true);
   src.parent.createSync(recursive: true);
 
-  stdout.writeln('$name $version: cloning $repo@$tag');
+  stdout.writeln('$name $version: fetching $repo@${tag ?? commit}');
+  src.createSync(recursive: true);
+  // Fetch the pinned commit itself, so an untagged commit works as well.
+  await _run('git', ['init', '--quiet'], cwd: src.path);
+  // Keep upstream line endings so the patch applies on Windows too.
+  await _run('git', ['config', 'core.autocrlf', 'false'], cwd: src.path);
   await _run('git', [
-    // Keep upstream line endings so the patch applies on Windows too.
-    '-c', 'core.autocrlf=false',
-    '-c', 'advice.detachedHead=false',
-    'clone', '--quiet', '--depth', '1', '--branch', tag,
-    'https://github.com/$repo.git', src.path,
-  ]);
+    'fetch',
+    '--quiet',
+    '--depth',
+    '1',
+    'https://github.com/$repo.git',
+    commit,
+  ], cwd: src.path);
+  await _run('git', [
+    '-c',
+    'advice.detachedHead=false',
+    'checkout',
+    '--quiet',
+    'FETCH_HEAD',
+  ], cwd: src.path);
   final head = (await _run('git', ['rev-parse', 'HEAD'], cwd: src.path)).trim();
   if (head != commit) {
-    stderr.writeln('$name: tag $tag is at $head, expected $commit');
+    stderr.writeln('$name: fetched $head, expected $commit');
     exit(1);
   }
 

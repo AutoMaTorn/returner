@@ -43,13 +43,24 @@ abstract final class S {
   static const loginCodeHelper =
       'Код пришёл на ваше устройство Apple. Нужны все шесть цифр.';
   static const loginCodeSubmit = 'Подтвердить';
+  static const loginNoCodeLabel = 'код не пришёл';
+  static const loginNoCode =
+      'Код показывается на iPhone, iPad или Mac с этим Apple ID — устройство '
+      'должно быть в сети и разблокировано. Бывает, что Apple просит код, но '
+      'не присылает его. Тогда войдите в account.apple.com в браузере, '
+      'подтвердите вход на iPhone и введите сюда код, который он покажет. '
+      'Если после этого появится ошибка, войдите в Returner ещё раз — '
+      'обычно Apple уже пускает без кода.';
+  static const loginResendCode = 'повторить вход без кода';
   static const loginFailed = 'не удалось войти';
+  static String loginAppleLink(String host) => 'открыть $host';
   static const loginExpired =
       'Сессия истекла. Войдите в Apple ID заново — скачанные файлы на месте.';
   static const loginFillBoth = 'Нужны и Apple ID, и пароль.';
 
   // Navigation
   static const sectionCatalog = 'Каталог';
+  static const sectionPurchases = 'Покупки';
   static const sectionSearch = 'Поиск';
   static const sectionFiles = 'Файлы';
   static const sectionSettings = 'Настройки';
@@ -111,6 +122,38 @@ abstract final class S {
   static const catalogOpenSearch = 'Искать в App Store';
   static String catalogEmpty(String query) =>
       'В каталоге нет «$query». Попробуйте короче или найдите приложение в App Store по названию, ID или ссылке.';
+
+  // Purchases
+  static const purchasesLabel = 'покупки apple id';
+  static const purchasesFilter = 'найти в покупках';
+  static const purchasesFilterHint = 'название, bundle id или app store id…';
+  static const purchasesRefresh = 'обновить';
+  static const purchasesMore = 'ещё';
+  static const purchasesNeverLabel = 'ещё не загружены';
+  static const purchasesNever =
+      'Здесь будут все приложения, которые этот Apple ID когда-либо получал, '
+      'в том числе исчезнувшие из App Store. Список загружается один раз и '
+      'хранится на этом компьютере.';
+  static const purchasesLoad = 'Загрузить покупки';
+  static const purchasesEmptyLabel = 'покупок нет';
+  static const purchasesEmpty =
+      'Apple не вернула ни одного приложения для iPhone в истории этого Apple ID.';
+  static const purchasesRefreshFailed = 'Не удалось обновить покупки';
+  static String purchasesLoading(int loaded, int total) =>
+      total == 0 ? 'загружаем покупки' : 'загружаем покупки: $loaded из $total';
+  static String purchasesSynced(DateTime date) =>
+      'обновлено ${shortDateTime(date)}';
+
+  static String purchasesFilterEmpty(String query) =>
+      'В покупках нет «$query». Если приложение купили недавно, обновите список.';
+  static const _months = [
+    'январь', 'февраль', 'март', 'апрель', 'май', 'июнь', //
+    'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь',
+  ];
+
+  /// List-style date: «июль 2026».
+  static String monthYear(DateTime date) =>
+      '${_months[date.month - 1]} ${date.year}';
 
   // Search
   static const searchLabel = 'поиск';
@@ -180,13 +223,28 @@ abstract final class S {
       'Сборок: $count, сверху новые. Apple называет их номерами; '
       'настоящую версию можно узнать по одной — каждый запрос идёт до минуты.';
   static const versionsBuild = 'сборка';
+  static String seconds(int value) => '$value с';
   static const versionsNewest = 'последняя';
   static const versionsResolve = 'узнать версию';
   static const versionsRetry = 'ещё раз';
   static const versionsMore = 'показать ещё';
+  static const versionsRefresh = 'обновить';
+  static const versionsRefreshFailed = 'не удалось обновить список';
+  static const versionsLookupFailed = 'не удалось узнать версию';
+  static const versionsLookupFailedShort = '! не удалось узнать версию';
+  static String versionsFetched(DateTime date) =>
+      'список от ${shortDateTime(date)}';
   static const versionsLatest = 'Последняя версия';
   static String shortDate(DateTime date) =>
       '${'${date.day}'.padLeft(2, '0')}.${'${date.month}'.padLeft(2, '0')}.${date.year}';
+
+  /// Local date and time: 08.11.2026, 19:30.
+  static String shortDateTime(DateTime date) {
+    final local = date.toLocal();
+    return '${shortDate(local)}, '
+        '${'${local.hour}'.padLeft(2, '0')}:${'${local.minute}'.padLeft(2, '0')}';
+  }
+
   static const activityShow = 'показать';
 
   // Operation results (notice titles are lowercase)
@@ -234,10 +292,28 @@ abstract final class S {
   static const aboutLicenses = 'Лицензии';
   static const aboutLicensesTitle = 'Лицензии компонентов';
   static const aboutPatched =
-      'ipatool собран из исходников версии 2.7.0 с нашим изменением: пароль, код и ключ хранилища '
+      'ipatool собран из исходников версии 2.8.0 с исправлениями, вышедшими после неё, и с нашим изменением: пароль, код и ключ хранилища '
       'передаются через stdin, а не аргументами, и сессия хранится в отдельной папке приложения. '
       'Изменение лежит рядом с исходниками в tools/patches.';
   static const aboutClose = 'закрыть';
+  static const aboutSource = 'исходники';
+  static const updatesLabel = 'обновления';
+  static const updatesOnStart = 'Проверять при запуске';
+  static const updatesOnStartNote =
+      'Returner спрашивает у GitHub, вышла ли новая версия. В запросе только '
+      'номер версии Returner, без Apple ID и данных устройства. Ничего не '
+      'скачивается само: новую версию вы ставите сами со страницы релиза.';
+  static const updatesCheck = 'проверить';
+  static const updatesChecking = 'проверяем';
+  static const updatesUpToDate = 'установлена последняя версия';
+  static const updatesFailed =
+      'не удалось проверить: GitHub не ответил. Проверьте интернет и повторите.';
+  static String updatesAvailable(String version) => 'доступна версия $version';
+  static String updatesAvailableBody(String current) =>
+      'Сейчас установлена $current. Скачайте установщик со страницы релиза и '
+      'запустите его.';
+  static const updatesOpen = 'Открыть страницу релиза';
+  static String updatesNav(String version) => 'версия $version';
   static const aboutVersion = 'версия';
   static const aboutEngine = 'компоненты';
   static const aboutData = 'данные';
@@ -266,6 +342,10 @@ abstract final class S {
     AuthSessionExpired() => 'Сессия истекла. Войдите в Apple ID заново.',
     StorageLocked() => 'Не удалось открыть сохранённую сессию Apple ID. Войдите заново — прежние данные сохранены в резервной папке.',
     AppleUnreachable() => 'Нет связи с серверами Apple. Проверьте интернет; если включён VPN — выключите его, если выключен — включите.',
+    AppleSignInMessage(:final message) => _withReason(
+      'Apple не пустила во вход',
+      message,
+    ),
     AppleLoginRejected() => 'Apple сейчас не принимает вход: серверы отвечают пустым ответом, и дело не в пароле. Так бывает, когда Apple меняет порядок входа, — нужна новая версия Returner. Попробуйте позже или с другой сети.',
     AccountNotReady() => 'Этот Apple ID ещё не готов к загрузкам. Войдите под ним в App Store на iPhone и примите условия.',
     LicenseRequired() => noLicenseBody,
@@ -278,6 +358,7 @@ abstract final class S {
       'Apple не выдаёт это приложение вашему аккаунту. Проверьте ID или попробуйте другую публикацию',
       appleMessage,
     ),
+    RedownloadRefused() => 'Apple не отдала файл: приложения уже нет в App Store, а запрос на повторную загрузку она отклонила без объяснения. Это не окончательный отказ — повторите позже; если не поможет, выберите другую публикацию.',
     VersionUnavailable() =>
       'Эта версия недоступна. Выберите другую версию приложения.',
     NetworkInterrupted() => 'Соединение обрывалось даже после повторов. Проверьте интернет и нажмите «Повторить».',

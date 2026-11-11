@@ -4,7 +4,7 @@ import '../models/app_ref.dart';
 import '../services/package_store.dart';
 
 /// Sections of the main screen.
-enum HomeSection { catalog, search, files, settings }
+enum HomeSection { catalog, purchases, search, files, settings }
 
 final homeSectionProvider =
     NotifierProvider<HomeSectionController, HomeSection>(
