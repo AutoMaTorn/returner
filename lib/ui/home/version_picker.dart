@@ -101,7 +101,7 @@ class _VersionPickerState extends ConsumerState<_VersionPicker> {
       Log.warning(
         'Version lookup failed after ${watch.elapsed.inSeconds} s: '
         '${error.code}'
-        '${error is Unclassified ? ' ${error.safeDetails}' : ''}',
+        '${error.logDetails == null ? '' : ' ${error.logDetails}'}',
       );
       if (mounted) {
         setState(() {

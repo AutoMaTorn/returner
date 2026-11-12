@@ -20,6 +20,7 @@ import 'package:returner/services/lookup_service.dart';
 import 'package:returner/services/package_store.dart';
 import 'package:returner/state/auth.dart';
 import 'package:returner/state/catalog.dart';
+import 'package:returner/state/components.dart';
 import 'package:returner/state/devices.dart';
 import 'package:returner/state/library.dart';
 import 'package:returner/state/operations.dart';
@@ -117,6 +118,23 @@ class _FakeAuth extends AuthController {
 
   @override
   Future<void> logout() async => state = const AuthState(AuthStatus.signedOut);
+}
+
+/// The component check ends in [result] without starting ipatool.
+class _FakeComponents extends ComponentsController {
+  _FakeComponents(this.result);
+
+  ComponentsState result;
+  var runs = 0;
+
+  @override
+  ComponentsState build() => const ComponentsState(ComponentsStatus.checking);
+
+  @override
+  Future<void> ensure() async {
+    runs++;
+    state = result;
+  }
 }
 
 /// Records what the UI asks for and shows a scripted outcome.
@@ -322,6 +340,7 @@ const _phone = Size(390, 844);
 void main() {
   late Directory temp;
   late _FakeAuth auth;
+  late _FakeComponents components;
   late _FakeOperations operations;
   late _FakeLibrary library;
   late _FakeSearch search;
@@ -349,6 +368,9 @@ void main() {
     DriverInstallResult? driverFailure,
     bool binariesPresent = true,
     String? latestRelease,
+    ComponentsState componentsResult = const ComponentsState(
+      ComponentsStatus.ready,
+    ),
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -359,6 +381,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
     auth = _FakeAuth(saved: saved, needsCode: needsCode);
+    components = _FakeComponents(componentsResult);
     operations = _FakeOperations();
     library = _FakeLibrary(packages ?? [_package]);
     search = _FakeSearch();
@@ -388,6 +411,7 @@ void main() {
         overrides: [
           appPathsProvider.overrideWithValue(AppPaths(temp.path)),
           authProvider.overrideWith(() => auth),
+          componentsProvider.overrideWith(() => components),
           operationsProvider.overrideWith(() => operations),
           libraryProvider.overrideWith(() => library),
           searchProvider.overrideWith(() => search),
@@ -541,6 +565,55 @@ void main() {
       expect(find.text(S.settingsLogoutNote), findsOneWidget);
       await tap(tester, button(S.settingsLogout));
       expect(find.text(S.loginTitle), findsOneWidget);
+    });
+
+    testWidgets('missing components hold the sign-in until they are in', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        componentsResult: const ComponentsState(
+          ComponentsStatus.downloading,
+          stage: ComponentStage.appleAssets,
+          bytes: 110000000,
+          total: 330000000,
+          elapsed: Duration(minutes: 1),
+        ),
+      );
+      await tap(tester, button(S.setupContinue));
+      expect(components.runs, 1);
+      expect(
+        find.text(S.componentsDownloading(ComponentStage.appleAssets)),
+        findsOneWidget,
+      );
+      // A third in a minute: about two minutes left, not the time spent.
+      expect(find.text('110 из 330 МБ · осталось ~2 мин'), findsOneWidget);
+      expect(find.byType(AmAsciiProgress), findsOneWidget);
+      expect(find.text(S.componentsWhy), findsOneWidget);
+      expect(find.text(S.componentsWait), findsOneWidget);
+      final submit = tester.widget<FilledButton>(button(S.loginSubmit));
+      expect(submit.onPressed, isNull);
+
+      // A failure names the cause, offers a retry and lets the sign-in try.
+      components.result = const ComponentsState(
+        ComponentsStatus.failed,
+        error: AppleUnreachable('dial tcp: github.com'),
+      );
+      components.state = components.result;
+      await tester.pumpAndSettle();
+      expect(find.text(S.componentsFailed), findsOneWidget);
+      expect(find.text(S.errorText(const AppleUnreachable())), findsOneWidget);
+      expect(find.text(S.componentsWait), findsNothing);
+      expect(
+        tester.widget<FilledButton>(button(S.loginSubmit)).onPressed,
+        isNotNull,
+      );
+
+      components.result = const ComponentsState(ComponentsStatus.ready);
+      await tap(tester, button(S.componentsRetry));
+      expect(components.runs, 2);
+      expect(find.text(S.componentsFailed), findsNothing);
+      expect(find.text(S.componentsLabel), findsNothing);
     });
 
     testWidgets('a saved session skips the login screen', (tester) async {

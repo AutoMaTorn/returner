@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
 import '../../core/errors.dart';
 import '../../state/auth.dart';
+import '../../state/components.dart';
 import '../../theme/am_widgets.dart';
 import '../../theme/automatorn_theme.dart';
 import '../strings.dart';
 import '../widgets/app_widgets.dart';
+import 'components_block.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +26,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   String? _formError;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(componentsProvider.notifier).ensure(),
+    );
+  }
+
+  @override
   void dispose() {
     _email.dispose();
     _password.dispose();
@@ -32,6 +42,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _submitCredentials() {
+    if (ref.read(componentsProvider).blocksSignIn) return;
     final email = _email.text.trim();
     final password = _password.text;
     if (email.isEmpty || password.isEmpty) {
@@ -103,7 +114,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   List<Widget> _credentials(AmColors c, AuthState auth) {
     final error = auth.error;
+    final waiting = ref.watch(componentsProvider).blocksSignIn;
     return [
+      const ComponentsBlock(),
       if (auth.status == AuthStatus.expired && _formError == null) ...[
         const AmNotice(
           tone: AmTone.warning,
@@ -155,9 +168,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
       const SizedBox(height: AmSize.formGap),
       FilledButton(
-        onPressed: _submitCredentials,
+        onPressed: waiting ? null : _submitCredentials,
         child: const Text(S.loginSubmit),
       ),
+      if (waiting) ...[
+        const SizedBox(height: AmSize.fieldGap),
+        Text(
+          S.componentsWait,
+          style: Automatorn.caption.copyWith(color: c.muted),
+        ),
+      ],
     ];
   }
 

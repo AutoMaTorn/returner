@@ -127,7 +127,7 @@ class AuthController extends Notifier<AuthState> {
       _pending = null;
       Log.warning(
         'Sign-in failed: ${error.code}'
-        '${error is Unclassified ? ' — ${error.safeDetails}' : ''}',
+        '${error.logDetails == null ? '' : ' — ${error.logDetails}'}',
       );
       state = AuthState(AuthStatus.signedOut, error: error);
     } finally {

@@ -1,4 +1,5 @@
 import '../core/errors.dart';
+import '../models/store.dart';
 import '../state/operations.dart';
 
 /// All user-facing texts. Russian only for now.
@@ -57,6 +58,38 @@ abstract final class S {
   static const loginExpired =
       'Сессия истекла. Войдите в Apple ID заново — скачанные файлы на месте.';
   static const loginFillBoth = 'Нужны и Apple ID, и пароль.';
+
+  // Components fetched before the first sign-in
+  static const componentsLabel = 'подготовка ко входу';
+  static const componentsChecking = 'проверяем компоненты для входа';
+  static const componentsStarting = 'начинаем загрузку компонентов';
+  static String componentsDownloading(ComponentStage stage) => switch (stage) {
+    ComponentStage.runtime => 'скачиваем библиотеку эмулятора',
+    ComponentStage.appleAssets => 'скачиваем компоненты Apple из образа macOS',
+  };
+  static const componentsWhy =
+      'Один раз на этом компьютере: перед первым входом нужны компоненты '
+      'с серверов Apple и GitHub — около 330 МБ загрузки, на диске они '
+      'займут около 190 МБ.';
+  static const componentsWait = 'Войти можно после загрузки компонентов.';
+  static const componentsFailed = 'не удалось скачать компоненты';
+  static const componentsFailedHint =
+      'Повторите загрузку. Войти можно и сейчас — тогда компоненты '
+      'будут скачиваться во время входа.';
+  static const componentsRetry = 'Повторить загрузку';
+
+  /// "64 из 184 МБ", or just "64 МБ" when the size is not known.
+  static String componentsAmount(int bytes, int total) {
+    String mb(int value) => '${(value / 1000000).round()}';
+    return total > 0 ? '${mb(bytes)} из ${mb(total)} МБ' : '${mb(bytes)} МБ';
+  }
+
+  static String componentsRemaining(Duration? left) => switch (left) {
+    null => 'оцениваем, сколько осталось',
+    _ when left < const Duration(seconds: 5) => 'почти готово',
+    _ when left < const Duration(minutes: 1) => 'осталось меньше минуты',
+    _ => 'осталось ~${(left.inSeconds / 60).ceil()} мин',
+  };
 
   // Navigation
   static const sectionCatalog = 'Каталог';

@@ -11,6 +11,26 @@ String? appleCustomerMessage(String output) {
 
 bool _any(String value, List<String> needles) => needles.any(value.contains);
 
+final _urlPath = RegExp(r'(https?://[^/\s"?]+)[^\s"]*');
+
+/// The longest network failure text kept for the log.
+const networkCauseLimit = 300;
+
+/// A network failure as one masked log line: which request failed and how,
+/// e.g. `download Unicorn 2.1.4: … dial tcp: … connectex: …`.
+String networkCause(String output, {bool duringLogin = false}) {
+  final line = output
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ')
+      // The host is what tells connections apart; paths and queries only
+      // add noise and, for signed downloads, secrets.
+      .replaceAllMapped(_urlPath, (m) => '${m[1]}/…');
+  final masked = duringLogin ? maskAuthOutput(line) : mask(line);
+  return masked.length > networkCauseLimit
+      ? '${masked.substring(0, networkCauseLimit)}…'
+      : masked;
+}
+
 // ipatool appends Apple's button as " (<label>: <https url>)".
 final _dialogAction = RegExp(
   r'^(.*?)\s*\(([^()]*): (https://[^\s()]+)\)\s*$',
@@ -157,7 +177,7 @@ AppError mapIpatoolError(String output, {bool duringLogin = false}) {
     'wsarecv',
     'forcibly closed',
   ])) {
-    return const NetworkInterrupted();
+    return NetworkInterrupted(networkCause(output, duringLogin: duringLogin));
   }
   if (_any(value, [
         'failed to get bag',
@@ -170,7 +190,7 @@ AppError mapIpatoolError(String output, {bool duringLogin = false}) {
         'connection refused',
       ]) ||
       (value.contains('x509') && value.contains('certificate'))) {
-    return const AppleUnreachable();
+    return AppleUnreachable(networkCause(output, duringLogin: duringLogin));
   }
 
   // Checked last, so a network or session cause named in the same text wins.

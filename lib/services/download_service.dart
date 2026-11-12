@@ -66,7 +66,11 @@ class DownloadService {
         rethrow;
       } on _StartupTimeout {
         await _removeArtifacts(output);
-        if (startupRestarted) throw const AppleUnreachable();
+        if (startupRestarted) {
+          throw const AppleUnreachable(
+            'the App Store did not start the transfer twice',
+          );
+        }
         startupRestarted = true;
         Log.warning('App Store did not start the transfer; retrying once.');
       } on AppError catch (error) {

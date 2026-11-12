@@ -321,13 +321,13 @@ class OperationsController extends Notifier<List<Operation>> {
       _update(id, (o) => o.copyWith(error: error));
       Log.warning(
         'operation $id failed: ${error.code}'
-        '${error is Unclassified ? ' ${error.safeDetails}' : ''}',
+        '${error.logDetails == null ? '' : ' ${error.logDetails}'}',
       );
       journal.advance(
         id,
         OperationStage.failed.name,
         errorCode: error.code,
-        details: error is Unclassified ? error.safeDetails : null,
+        details: error.logDetails,
       );
       _update(id, (o) => o.copyWith(stage: OperationStage.failed));
     } catch (error) {

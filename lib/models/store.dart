@@ -64,3 +64,36 @@ class DownloadResult {
   /// True if this call obtained the license (`--purchase`).
   final bool licenseAcquired;
 }
+
+/// A component ipatool downloads before its first sign-in on a computer.
+enum ComponentStage {
+  /// The Unicorn emulator library (GitHub on Windows, PyPI on macOS).
+  runtime('runtime'),
+
+  /// Frameworks taken from Apple's macOS restore image.
+  appleAssets('apple-assets');
+
+  const ComponentStage(this.wireName);
+
+  /// The `stage` value in `ipatool prepare` output.
+  final String wireName;
+
+  static ComponentStage? fromName(String name) {
+    for (final stage in values) {
+      if (stage.wireName == name) return stage;
+    }
+    return null;
+  }
+}
+
+/// One `ipatool prepare` report: the component now downloading and how many
+/// bytes of the whole run have arrived out of about [total].
+class ComponentsProgress {
+  const ComponentsProgress(this.stage, {this.bytes = 0, this.total = 0});
+
+  final ComponentStage stage;
+  final int bytes;
+
+  /// Zero when ipatool does not know the size.
+  final int total;
+}

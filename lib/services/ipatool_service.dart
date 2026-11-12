@@ -166,6 +166,58 @@ class IpatoolService {
     }
   }
 
+  // --- components ------------------------------------------------------------
+
+  /// Fetching the components takes minutes on a slow line; the sign-in
+  /// timeout no longer has to cover it.
+  static const prepareTimeout = Duration(minutes: 30);
+
+  /// Whether the components a sign-in needs are already in the user cache.
+  /// Offline: nothing is downloaded.
+  Future<bool> componentsReady() async {
+    final lines = await _exec(['prepare', '--check'], timeout: queryTimeout);
+    return _last(lines)['ready'] == true;
+  }
+
+  /// Downloads the components a first sign-in needs (about 330 MB over the
+  /// network, 190 MB on disk, once per computer user). [onProgress] hears when each download starts and then
+  /// about once a second how many bytes have arrived.
+  Future<void> prepareComponents({
+    void Function(ComponentsProgress progress)? onProgress,
+    CancelToken? cancel,
+  }) async {
+    final watch = Stopwatch()..start();
+    await _exec(
+      ['prepare'],
+      timeout: prepareTimeout,
+      cancel: cancel,
+      onLine: (line) {
+        final stage = ComponentStage.fromName('${line['stage']}');
+        if (stage == null) return;
+        final state = line['state'];
+        final progress = ComponentsProgress(
+          stage,
+          bytes: _int(line['bytes']),
+          total: _int(line['total']),
+        );
+        if (state == 'downloading') {
+          Log.info('Components: downloading ${stage.name}');
+          onProgress?.call(progress);
+        } else if (state == 'progress') {
+          onProgress?.call(progress);
+        } else if (state == 'done') {
+          Log.info(
+            'Components: ${stage.name} ready after '
+            '${watch.elapsed.inSeconds} s, '
+            '${(progress.bytes / 1000000).round()} MB so far',
+          );
+        }
+      },
+    );
+  }
+
+  static int _int(Object? value) => value is num ? value.toInt() : 0;
+
   // --- catalog ---------------------------------------------------------------
 
   /// One page of the apps this account owns, newest first.
@@ -303,6 +355,7 @@ class IpatoolService {
     Duration? timeout,
     CancelToken? cancel,
     bool duringLogin = false,
+    void Function(Map<String, dynamic> line)? onLine,
   }) async {
     if (cancel?.isCancelled ?? false) throw const Cancelled();
     final passphrase = await _secureStore.keychainPassphrase();
@@ -332,7 +385,10 @@ class IpatoolService {
     final stdoutLines = <String>[];
     final stderrLines = <String>[];
     final drained = Future.wait([
-      process.stdout.forEach(stdoutLines.add),
+      process.stdout.forEach((line) {
+        stdoutLines.add(line);
+        if (onLine != null) _jsonLines([line]).forEach(onLine);
+      }),
       process.stderr.forEach(stderrLines.add),
     ]);
 
@@ -359,7 +415,11 @@ class IpatoolService {
       timer?.cancel();
     }
     if (cancelled) throw const Cancelled();
-    if (timedOut) throw const AppleUnreachable();
+    if (timedOut) {
+      throw AppleUnreachable(
+        'ipatool ${command.first} got no answer in ${timeout!.inSeconds} s',
+      );
+    }
 
     final lines = _jsonLines(stdoutLines);
     final errorLine = lines.where((l) => l['level'] == 'error').lastOrNull;

@@ -7,6 +7,10 @@ sealed class AppError implements Exception {
 
   final String code;
 
+  /// Masked text for the log and the journal that says more than [code];
+  /// never shown to the user.
+  String? get logDetails => null;
+
   @override
   String toString() => 'AppError($code)';
 }
@@ -38,8 +42,15 @@ class StorageLocked extends AppError {
   const StorageLocked() : super('STORAGE_LOCKED');
 }
 
+/// No answer from Apple, or from the servers ipatool fetches its components
+/// from. [cause] (masked) says which connection failed and how.
 class AppleUnreachable extends AppError {
-  const AppleUnreachable() : super('APPLE_UNREACHABLE');
+  const AppleUnreachable([this.cause]) : super('APPLE_UNREACHABLE');
+
+  final String? cause;
+
+  @override
+  String? get logDetails => cause;
 }
 
 /// Apple answers the sign-in request with nothing usable (empty 204, 404),
@@ -96,7 +107,13 @@ class VersionUnavailable extends AppError {
 }
 
 class NetworkInterrupted extends AppError {
-  const NetworkInterrupted() : super('TRANSFER_INTERRUPTED');
+  const NetworkInterrupted([this.cause]) : super('TRANSFER_INTERRUPTED');
+
+  /// Masked text of the failure, for the log.
+  final String? cause;
+
+  @override
+  String? get logDetails => cause;
 }
 
 class PackageInvalid extends AppError {
@@ -167,4 +184,7 @@ class Unclassified extends AppError {
   const Unclassified(this.safeDetails) : super('UNCLASSIFIED');
 
   final String safeDetails;
+
+  @override
+  String? get logDetails => safeDetails;
 }
